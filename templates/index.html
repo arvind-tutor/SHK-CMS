@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHK CMS</title>
+    <style>
+        
+        .nav-bar{
+    background: black;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    height: 10vh; 
+}
+.logo {
+    font-size: 1cm;
+}
+.items {
+    display: flex;
+    gap:1cm;
+    font-size: 0.7cm;
+}
+.items a{
+    color: white;
+    text-decoration: none;
+    transition: all 0.5s ease-in-out;
+}
+.items a:hover{
+    text-decoration: underline;
+    text-underline-offset: 0.5cm;
+    font-size: 0.8cm;
+}
+    body{
+        background-color: beige;
+    }
+    h1{
+        text-align: center;
+    }
+        main {
+        background-color: beige;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        height: 80vh;
+        width: 100vw;
+        gap: 2px;
+    }
+
+    section {
+        padding: 10px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    th, td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: left;
+        font-size: 14px;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    input, button {
+        padding: 6px;
+        font-size: 14px;
+    }
+    .three h2 {
+        margin-top: 55px;
+    }
+    h2{
+        text-align: center;
+    }
+    .four div {
+    margin: 0 auto; /* Horizontal centering */
+    width: fit-content; /* Or a fixed width */
+}
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="nav-bar">
+            <div class="logo"> SHK </div>
+            <div class="items">
+                <p><a href="/">Dashboard</a></p>
+                <p><a href="/chequeentry">Cheque Entry</a></p>
+            </div>
+        </nav>
+    </header> 
+     <h1>SHK CHEQUE MANAGEMENT SYSTEM</h1>
+    <main>
+        <Section class="one">
+            <h2>Cheques due between {{current_date}} and {{ display_15 }}</h2>
+            <h3>Cheque Count:{{count1}} | Cheque Amount:₹ {{total1}}</h3>
+            <table>
+                <tr>
+                    <th>Bank</th>
+                    <th>Cheque No</th>
+                    <th>Amount</th>
+                    <th>Issue Date</th>
+                    <th>Realisation Date</th>
+                    <th>Vendor</th>
+                </tr>
+                {% for row1 in range1 %}
+                <tr>
+                    <td>{{ row1.bank }}</td>
+                    <td>{{ row1.cheque_no }}</td>
+                    <td>{{ row1.amount }}</td>
+                    <td>{{ row1.issue_date }}</td>
+                    <td>{{ row1.post_date }}</td>
+                    <td>{{ row1.vendor }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </Section>
+        <section class="two">
+            <h2>Cheques due between {{ display_15 }} and {{ display_30 }}</h2>
+            <h3>Cheque Count:{{count2}} | Cheque Amount:₹ {{total2}}</h3>
+            <table>
+                <tr>
+                    <th>Bank</th>
+                    <th>Cheque No</th>
+                    <th>Amount</th>
+                    <th>Issue Date</th>
+                    <th>Realisation Date</th>
+                    <th>Vendor</th>
+                </tr>
+                {% for row2 in range2 %}
+                <tr>
+                    <td>{{ row2.bank }}</td>
+                    <td>{{ row2.cheque_no }}</td>
+                    <td>{{ row2.amount }}</td>
+                    <td>{{ row2.issue_date }}</td>
+                    <td>{{ row2.post_date }}</td>
+                    <td>{{ row2.vendor }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </section>
+        <section class="three">
+            <h2>Cheques due between {{ display_30 }} and {{ display_45 }}</h2>
+            <h3>Cheque Count:{{count3}} | Cheque Amount:₹ {{total3}}</h3>
+            <table>
+                <tr>
+                    <th>Bank</th>
+                    <th>Cheque No</th>
+                    <th>Amount</th>
+                    <th>Issue Date</th>
+                    <th>Realisation Date</th>
+                    <th>Vendor</th>
+                </tr>
+                {% for row3 in range3 %}
+                <tr>
+                    <td>{{ row3.bank }}</td>
+                    <td>{{ row3.cheque_no }}</td>
+                    <td>{{ row3.amount }}</td>
+                    <td>{{ row3.issue_date }}</td>
+                    <td>{{ row3.post_date }}</td>
+                    <td>{{ row3.vendor }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </section>
+        
+        <section class="four">
+            <div class="form1">
+                <form method="POST" action="/custom">
+                    <label for="from_date">From:</label>
+                    <input type="date" id="from_date" name="from_date" required>
+                    <label for="to_date">To:</label>
+                    <input type="date" id="to_date" name="to_date" required>
+                    <button type="submit">Search</button>
+                </form>
+            </div>
+            <h2>Cheques due between {{ from_display }} and {{ to_display }}</h2>
+            <h3>Cheque Count:{{count4}} | Cheque Amount:₹ {{total4}}</h3>
+            <table>
+                <tr>
+                    <th>Bank</th>
+                    <th>Cheque No</th>
+                    <th>Amount</th>
+                    <th>Issue Date</th>
+                    <th>Realisation Date</th>
+                    <th>Vendor</th>
+                </tr>
+                {% for row4 in custom_results %}
+                <tr>
+                    <td>{{ row4.bank }}</td>
+                    <td>{{ row4.cheque_no }}</td>
+                    <td>{{ row4.amount }}</td>
+                    <td>{{ row4.issue_date }}</td>
+                    <td>{{ row4.post_date }}</td>
+                    <td>{{ row4.vendor }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </section>
+    </main>
+</body>
+</html>

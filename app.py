@@ -1,0 +1,176 @@
+from flask import Flask, render_template, request, redirect
+import mysql.connector
+from datetime import *
+
+app = Flask(__name__)
+
+def connect_db():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="qwerty@123",
+        database="shk"
+    )
+@app.route('/')
+def home():
+    today = datetime.now().date()
+
+    # Ranges
+    day_15 = today + timedelta(days=15)
+    day_30 = today + timedelta(days=30)
+    day_45 = today + timedelta(days=45)
+
+    # Format for SQL
+    today_str = today.strftime("%Y-%m-%d")
+    day_15_str = day_15.strftime("%Y-%m-%d")
+    day_30_str = day_30.strftime("%Y-%m-%d")
+    day_45_str = day_45.strftime("%Y-%m-%d")
+
+    # Format for display
+    current_date = today.strftime("%d-%m-%Y")
+    display_15 = day_15.strftime("%d-%m-%Y")
+    display_30 = day_30.strftime("%d-%m-%Y")
+    display_45 = day_45.strftime("%d-%m-%Y")
+
+    conn = connect_db()
+    cursor = conn.cursor(dictionary=True)
+
+    # Today to 15 days
+    cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (today_str, day_15_str))
+    range1 = cursor.fetchall()
+    cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (today_str, day_15_str))
+    result1 = cursor.fetchone()
+    a = int (result1['COUNT(*)'] or 0)
+    b = float (result1['SUM(amount)'] or 0)
+    # 16 to 30 days
+    cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (day_15_str, day_30_str))
+    range2 = cursor.fetchall()
+    cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (day_15_str, day_30_str))
+    result2 = cursor.fetchone()
+    c = int (result2['COUNT(*)'] or 0)
+    d = float (result2['SUM(amount)'] or 0)
+
+    # 31 to 45 days
+    cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (day_30_str, day_45_str))
+    range3 = cursor.fetchall()
+    cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (day_30_str, day_45_str))
+    result3 = cursor.fetchone()
+    e = int (result3['COUNT(*)'] or 0)
+    f = float (result3['SUM(amount)'] or 0)
+
+    conn.close()
+
+    return render_template(
+        'index.html',
+        current_date=current_date,
+        display_15=display_15,
+        display_30=display_30,
+        display_45=display_45,
+        range1=range1,
+        range2=range2,
+        range3=range3,
+        count1=a,
+        total1=b,
+        count2=c,
+        total2=d,
+        count3=e,
+        total3=f,
+    )
+
+@app.route('/custom', methods=['POST'])
+def custom_range():
+    from_date = request.form['from_date']
+    to_date = request.form['to_date']
+
+    from_display = datetime.strptime(from_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+    to_display = datetime.strptime(to_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+
+    today = datetime.now().date()
+    day_15 = today + timedelta(days=15)
+    day_30 = today + timedelta(days=30)
+    day_45 = today + timedelta(days=45)
+
+    conn = connect_db()
+    cursor = conn.cursor(dictionary=True)
+
+    # Custom range
+    cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (from_date, to_date))
+    custom_results = cursor.fetchall()
+    cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (from_date, to_date))
+    result4 = cursor.fetchone()
+    g = int (result4['COUNT(*)'] or 0)
+    h = float (result4['SUM(amount)'] or 0)
+
+    # Today to 15 days
+    cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (today, day_15))
+    range1 = cursor.fetchall()
+    cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (today, day_15))
+    result1 = cursor.fetchone()
+    a = int (result1['COUNT(*)'] or 0)
+    b = float (result1['SUM(amount)'] or 0)
+    # 16 to 30 days
+    cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (day_15, day_30))
+    range2 = cursor.fetchall()
+    cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (day_15, day_30))
+    result2 = cursor.fetchone()
+    c = int (result2['COUNT(*)'] or 0)
+    d = float (result2['SUM(amount)'] or 0)
+
+    # 31 to 45 days
+    cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (day_30, day_45))
+    range3 = cursor.fetchall()
+    cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (day_30, day_45))
+    result3 = cursor.fetchone()
+    e = int (result3['COUNT(*)'] or 0)
+    f = float (result3['SUM(amount)'] or 0)
+
+    
+    conn.close()
+
+    return render_template(
+        'index.html',
+        current_date=today.strftime("%d-%m-%Y"),
+        display_15=day_15.strftime("%d-%m-%Y"),
+        display_30=day_30.strftime("%d-%m-%Y"),
+        display_45=day_45.strftime("%d-%m-%Y"),
+        range1=range1,
+        range2=range2,
+        range3=range3,
+        count1=a,
+        total1=b,
+        count2=c,
+        total2=d,
+        count3=e,
+        total3=f,
+        count4=g,
+        total4=h,
+        custom_results=custom_results,
+        from_display=from_display,
+        to_display=to_display
+    )
+    
+
+@app.route('/chequeentry', methods=['GET', 'POST'])
+def index():
+    conn = connect_db()
+    cursor = conn.cursor(dictionary=True)
+
+    if request.method == 'POST':
+        bank=request.form['bank']
+        chequeno = request.form['chqno']
+        amount=request.form['amount']
+        issuedate = request.form['idate']
+        postdate = request.form['rdate']
+        vendor=request.form['vendor']
+
+        cursor.execute("INSERT INTO cms (bank,cheque_no,amount,issue_date,post_date,vendor) VALUES (%s, %s, %s, %s, %s, %s)",
+                       (bank,chequeno,amount,issuedate,postdate,vendor))
+        conn.commit()
+        return redirect('/chequeentry')
+    cursor.execute("SELECT * FROM cms order by ID desc limit 5")
+    data = cursor.fetchall()
+    conn.close()
+    return render_template('chequeentry.html', records=data)
+
+if __name__ == '__main__':
+    app.run(debug=True)

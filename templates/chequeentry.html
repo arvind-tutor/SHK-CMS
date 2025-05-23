@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHK CMS</title>
+    <style>
+        main {
+            background-color: beige;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            height:90vh;
+        }
+        .container1{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .container1 button{
+            padding: 10px;
+            font-size: 15px;
+            border-radius: 15px;
+            border: none;
+            outline: none;
+            background-color:lightsalmon;
+        }
+        table,tr,td,th{
+            border:1px solid black;
+            border-collapse: collapse;
+            padding: 10px;
+        }
+        .nav-bar{
+    background: black;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    height: 10vh; 
+}
+.logo {
+    font-size: 1cm;
+}
+.items {
+    display: flex;
+    gap:1cm;
+    font-size: 0.7cm;
+}
+.items a{
+    color: white;
+    text-decoration: none;
+    transition: all 0.5s ease-in-out;
+}
+.items a:hover{
+    text-decoration: underline;
+    text-underline-offset: 0.5cm;
+    font-size: 0.8cm;
+}
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="nav-bar">
+            <div class="logo"> SHK </div>
+            <div class="items">
+                <p><a href="/">Dashboard</a></p>
+                <p><a href="/chequeentry">Cheque Entry</a></p>
+            </div>
+        </nav>
+    </header>
+    <main>
+    <section class="container1">
+        <h1>SHK CHEQUE MANAGEMENT SYSTEM</h1>
+        <form method="POST" action="/chequeentry">
+            <label for="">Bank:</label>
+            <select name="bank" id="" required>
+                <option value="ICICI">ICICI</option>
+                <option value="HDFC">HDFC</option>
+            </select><br><br>
+            
+            <label for="">Cheque No:</label>
+            <input type="number" name="chqno" required><br><br>
+            <label for="">Amount:</label>
+            <input type="number" name="amount" required><br><br>
+            <label for="">Issue Date:</label>
+            <input type="date" name="idate" required><br><br>
+            <label for="">Realisation Date:</label>
+            <input type="date" name="rdate" required><br><br>
+            <label for="">Vendor:</label>
+            <input type="text" name="vendor" required><br><br>
+            <button type="submit">Add</button>
+        </form>
+    </section>
+    <br><br>
+    <h1>Last 5 Cheques</h1>
+    <section class="container2">
+        <table>
+    <tr>
+        <th>ID</th>
+        <th>Bank</th>
+        <th>Cheque No</th>
+        <th>Amount</th>
+        <th>Issue Date</th>
+        <th>Realisation Date</th>
+        <th>Vendor</th>
+    </tr>
+    {% for row in records %}
+    <tr>
+        <td>{{ row.id }}</td>
+        <td>{{ row.bank }}</td>
+        <td>{{ row.cheque_no }}</td>
+        <td>{{ row.amount }}</td>
+        <td>{{ row.issue_date }}</td>
+        <td>{{ row.post_date }}</td>
+        <td>{{ row.vendor }}</td>
+    </tr>
+    {% endfor %}
+</table>
+    </section>
+    </main>
+</body>
+</html>
