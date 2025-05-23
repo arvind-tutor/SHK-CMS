@@ -6,11 +6,29 @@ app = Flask(__name__)
 
 def connect_db():
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="qwerty@123",
-        database="shk"
+        host="sql12.freesqldatabase.com",
+        user="sql12780757",
+        password="SI5nLl7W1R",
+        database="sql12780757",
+        port=3306
     )
+def init_db():
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS cms (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            bank VARCHAR(10),
+            cheque_no INT,
+            amount INT,
+            issue_date DATE,
+            post_date DATE,
+            vendor VARCHAR(50)
+        );
+    """)
+    conn.commit()
+    conn.close()
+
 @app.route('/')
 def home():
     today = datetime.now().date()
@@ -173,4 +191,5 @@ def index():
     return render_template('chequeentry.html', records=data)
 
 if __name__ == '__main__':
+    init_db()  # create table
     app.run(debug=False, host='0.0.0.0', port=10000)
