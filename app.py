@@ -173,4 +173,4 @@ def index():
     return render_template('chequeentry.html', records=data)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False, host='0.0.0.0', port=10000)
