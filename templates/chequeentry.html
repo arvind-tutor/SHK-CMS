@@ -58,6 +58,24 @@
     text-underline-offset: 0.5cm;
     font-size: 0.8cm;
 }
+.alert {
+    padding: 10px;
+    margin: 15px auto;
+    width: 90%;
+    max-width: 600px;
+    border-radius: 5px;
+    text-align: center;
+  }
+  .alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+  .alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
     </style>
 </head>
 <body>
@@ -72,6 +90,17 @@
             </div>
         </nav>
     </header>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div>
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
     <main>
     <section class="container1">
         <h1>SHK CHEQUE MANAGEMENT SYSTEM</h1>
@@ -121,5 +150,12 @@
 </table>
     </section>
     </main>
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(alert => {
+            alert.style.display = 'none';
+            });
+        }, 3000); // 3 seconds
+    </script>
 </body>
 </html>

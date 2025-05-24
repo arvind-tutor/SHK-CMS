@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, flash, session
 import mysql.connector
 from datetime import *
 
 app = Flask(__name__)
+app.secret_key = 'shk-cms-secret-key'
 
 def connect_db():
     return mysql.connector.connect(
@@ -187,10 +188,18 @@ def index():
         issuedate = request.form['idate']
         postdate = request.form['rdate']
         vendor=request.form['vendor']
+        cursor.execute("SELECT * FROM cms WHERE cheque_no = %s", (chequeno,))
+        existing = cursor.fetchone()
+        if existing:
+            conn.close()
+            flash("❌ Error: Cheque number already exists!", "error")
+            return redirect('/chequeentry')
 
         cursor.execute("INSERT INTO cms (bank,cheque_no,amount,issue_date,post_date,vendor) VALUES (%s, %s, %s, %s, %s, %s)",
                        (bank,chequeno,amount,issuedate,postdate,vendor))
         conn.commit()
+        conn.close()
+        flash("✅ Cheque added successfully!", "success")
         return redirect('/chequeentry')
     cursor.execute("SELECT * FROM cms order by ID desc limit 5")
     data = cursor.fetchall()
