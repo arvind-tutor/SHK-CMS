@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+         .nav-bar{
+            background: black;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            height: 10vh; 
+        }
+        .logo {
+            font-size: 1cm;
+        }
+        .items {
+            display: flex;
+            gap:1cm;
+            font-size: 0.7cm;
+        }
+        .items a{
+            color: white;
+            text-decoration: none;
+            transition: all 0.5s ease-in-out;
+        }
+        .items a:hover{
+            text-decoration: underline;
+            text-underline-offset: 0.5cm;
+            font-size: 0.8cm;
+        }
+        body{
+                background-color: beige;
+            }
+        table,tr,td,th{
+            border:1px solid black;
+            border-collapse: collapse;
+            padding: 10px;
+        }
+        main {
+            background-color: beige;
+            display: flex;
+            align-items: center;
+            /* justify-content: center; */
+            flex-direction: column;
+            height:90vh;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="nav-bar">
+            <div class="logo"> SHK </div>
+            <div class="items">
+                <p><a href="/">Dashboard</a></p>
+                <p><a href="/chequeentry">Cheque Entry</a></p>
+                <p><a href="/search">Search</a></p>
+            </div>
+        </nav>
+    </header> 
+    <main>
+    <h1>SHK CHEQUE MANAGEMENT SYSTEM</h1>
+    <div class="form1">
+                <form method="POST" action="/search">
+                    <label for="vendor">Vendor name:</label>
+                    <input type="text" id="vendor" name="vendor" required>
+                    <label for="from_date">From:</label>
+                    <input type="date" id="from_date" name="from_date" required>
+                    <label for="to_date">To:</label>
+                    <input type="date" id="to_date" name="to_date" required>
+                    <button type="submit">Search</button>
+                </form>
+    </div>
+    <Section class="one">
+            <h2>Cheques for {{vendor}} </h2>
+            <h3>Cheque Count:{{count5}} | Cheque Amount:₹ {{total5}}</h3>
+            <table>
+                <tr>
+                    <th>Bank</th>
+                    <th>Cheque No</th>
+                    <th>Amount</th>
+                    <th>Issue Date</th>
+                    <th>Realisation Date</th>
+                    <th>Vendor</th>
+                </tr>
+                {% for row1 in vendor_results %}
+                <tr>
+                    <td>{{ row1.bank }}</td>
+                    <td>{{ row1.cheque_no }}</td>
+                    <td>{{ row1.amount }}</td>
+                    <td>{{ row1.issue_date }}</td>
+                    <td>{{ row1.post_date }}</td>
+                    <td>{{ row1.vendor }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+    </Section>
+    </main>
+</body>
+</html>

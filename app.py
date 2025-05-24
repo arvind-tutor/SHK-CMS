@@ -12,6 +12,14 @@ def connect_db():
         database="sql12780757",
         port=3306
     )
+# def connect_db():
+#     return mysql.connector.connect(
+#         host="localhost",
+#         user="root",
+#         password="qwerty@123",
+#         database="shk",
+#     )
+
 def init_db():
     conn = connect_db()
     cursor = conn.cursor()
@@ -167,7 +175,6 @@ def custom_range():
         to_display=to_display
     )
     
-
 @app.route('/chequeentry', methods=['GET', 'POST'])
 def index():
     conn = connect_db()
@@ -190,6 +197,44 @@ def index():
     conn.close()
     return render_template('chequeentry.html', records=data)
 
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    if request.method == 'POST':
+        vendor = request.form['vendor']
+        from_date = request.form['from_date']
+        to_date = request.form['to_date']
+
+        from_display = datetime.strptime(from_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+        to_display = datetime.strptime(to_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+
+        conn = connect_db()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("SELECT * FROM cms WHERE vendor= %s and post_date BETWEEN %s AND %s", (vendor,from_date, to_date))
+        vendor_results = cursor.fetchall()
+        cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE vendor= %s and post_date BETWEEN %s AND %s", (vendor,from_date, to_date))
+        result5 = cursor.fetchone()
+        count5 = int(result5['COUNT(*)'] or 0)
+        total5 = float(result5['SUM(amount)'] or 0)
+        
+        conn.close()
+        return render_template(
+            'search.html',
+            count5=count5,
+            total5=total5,
+            vendor=vendor,
+            vendor_results=vendor_results,
+            from_display=from_display,
+            to_display=to_display
+        )
+    else:
+        # For GET request, just show the empty search form
+        return render_template('search.html', vendor_results=[], count5=0, total5=0, vendor="", from_display="", to_display="")
+
+
 if __name__ == '__main__':
     init_db()  # create table
     app.run(debug=False, host='0.0.0.0', port=10000)
+
+# if __name__ == '__main__':
+#     app.run(debug=True)
