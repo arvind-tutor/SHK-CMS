@@ -64,19 +64,14 @@
     <main>
     <h1>SHK CHEQUE MANAGEMENT SYSTEM</h1>
     <div class="form1">
-                <form method="POST" action="/search">
-                    <label for="vendor">Vendor name:</label>
-                    <input type="text" id="vendor" name="vendor" required>
-                    <label for="from_date">From:</label>
-                    <input type="date" id="from_date" name="from_date" required>
-                    <label for="to_date">To:</label>
-                    <input type="date" id="to_date" name="to_date" required>
+                <form method="POST" action="/searchcheque">
+                    <label for="chequeno">Cheque No:</label>
+                    <input type="number" id="chequeno" name="chequeno" required>
                     <button type="submit">Search</button>
                 </form>
     </div>
+    <br>
     <Section class="one">
-            <h2>Cheques for {{vendor}} </h2>
-            <h3>Cheque Count:{{count5}} | Cheque Amount:₹ {{total5}}</h3>
             <table>
                 <tr>
                     <th>Bank</th>
@@ -86,7 +81,7 @@
                     <th>Realisation Date</th>
                     <th>Vendor</th>
                 </tr>
-                {% for row1 in vendor_results %}
+                {% for row1 in cheque_results %}
                 <tr>
                     <td>{{ row1.bank }}</td>
                     <td>{{ row1.cheque_no }}</td>

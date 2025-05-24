@@ -231,6 +231,25 @@ def search():
         # For GET request, just show the empty search form
         return render_template('search.html', vendor_results=[], count5=0, total5=0, vendor="", from_display="", to_display="")
 
+@app.route('/searchcheque', methods=['GET', 'POST'])
+def searchcheque():
+    if request.method == 'POST':
+        cheque_no = int(request.form['chequeno'])
+        conn = connect_db()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("SELECT * FROM cms WHERE cheque_no = %s", (cheque_no,))
+        cheque_results = cursor.fetchall()
+        
+        conn.close()
+        return render_template(
+            'cheque.html',
+            cheque_results=cheque_results,
+        )
+    else:
+        # For GET request, just show the empty search form
+        return render_template('cheque.html', cheque_results=[])
+
 
 if __name__ == '__main__':
     init_db()  # create table
