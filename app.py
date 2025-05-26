@@ -261,6 +261,41 @@ def searchcheque():
         return render_template('cheque.html', cheque_results=[])
 
 
+@app.route('/statusupdate', methods=['GET', 'POST'])
+def statusupdate():
+    conn = connect_db()
+    cursor = conn.cursor(dictionary=True)
+
+    if request.method == 'POST':
+        cheque_no = request.form.get('cheque_no')
+
+        # Search cheque details
+        cursor.execute("SELECT * FROM cms WHERE cheque_no = %s", (cheque_no,))
+        cheque = cursor.fetchone()
+        conn.close()
+
+        return render_template('statusupdate.html', cheque=cheque)
+
+    return render_template('statusupdate.html', cheque=None)
+
+@app.route('/updatestatus', methods=['POST'])
+def updatestatus():
+    cheque_no = request.form['cheque_no']
+    new_status = request.form['status']
+    status_date = request.form['status_date']
+
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    # Update the status and date
+    cursor.execute("UPDATE cms SET status = %s, status_date = %s WHERE cheque_no = %s", (new_status, status_date, cheque_no))
+    conn.commit()
+    conn.close()
+
+    flash(f"✅ Cheque {cheque_no} status updated to {new_status}!", "success")
+    return redirect('/statusupdate')
+
+
 if __name__ == '__main__':
     init_db()  # create table
     app.run(debug=False, host='0.0.0.0', port=10000)

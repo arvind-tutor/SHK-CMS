@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Search By Cheque</title>
     <style>
          .nav-bar{
             background: black;
@@ -56,6 +56,7 @@
             <div class="items">
                 <p><a href="/">Dashboard</a></p>
                 <p><a href="/chequeentry">Cheque Entry</a></p>
+                <p><a href="/statusupdate">Status Update</a></p>
                 <p><a href="/search">Search by Vendor</a></p>
                 <p><a href="/searchcheque">Search by Cheque</a></p>
             </div>
@@ -81,6 +82,7 @@
                     <th>Realisation Date</th>
                     <th>Vendor</th>
                     <th>Status</th>
+                    <th>Status Date</th>
                 </tr>
                 {% for row1 in cheque_results %}
                 <tr>
@@ -91,6 +93,7 @@
                     <td>{{ row1.post_date }}</td>
                     <td>{{ row1.vendor }}</td>
                     <td>{{ row1.status }}</td>
+                    <td>{{ row1.status_date }}</td>
                 </tr>
                 {% endfor %}
             </table>
