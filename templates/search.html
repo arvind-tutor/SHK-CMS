@@ -19,7 +19,7 @@
         .items {
             display: flex;
             gap:1cm;
-            font-size: 0.7cm;
+            font-size: 0.5cm;
         }
         .items a{
             color: white;
@@ -29,7 +29,7 @@
         .items a:hover{
             text-decoration: underline;
             text-underline-offset: 0.5cm;
-            font-size: 0.8cm;
+            font-size: 0.6cm;
         }
         body{
                 background-color: beige;
@@ -59,6 +59,7 @@
                 <p><a href="/statusupdate">Status Update</a></p>
                 <p><a href="/search">Search by Vendor</a></p>
                 <p><a href="/searchcheque">Search by Cheque</a></p>
+                <p><a href="/vendor">Vendor</a></p>
             </div>
         </nav>
     </header> 
@@ -67,7 +68,12 @@
     <div class="form1">
                 <form method="POST" action="/search">
                     <label for="vendor">Vendor name:</label>
-                    <input type="text" id="vendor" name="vendor" required>
+                    <select name="vendor" required>
+                    <option value="" disabled selected>Select Vendor</option>
+                        {% for v in vendor_list %}
+                    <option value="{{ v }}">{{ v }}</option>
+                        {% endfor %}
+                    </select><br><br>
                     <label for="from_date">From:</label>
                     <input type="date" id="from_date" name="from_date" required>
                     <label for="to_date">To:</label>

@@ -46,7 +46,7 @@
 .items {
     display: flex;
     gap:1cm;
-    font-size: 0.7cm;
+    font-size: 0.5cm;
 }
 .items a{
     color: white;
@@ -56,7 +56,7 @@
 .items a:hover{
     text-decoration: underline;
     text-underline-offset: 0.5cm;
-    font-size: 0.8cm;
+    font-size: 0.6cm;
 }
 .alert {
     padding: 10px;
@@ -88,6 +88,7 @@
                 <p><a href="/statusupdate">Status Update</a></p>
                 <p><a href="/search">Search by Vendor</a></p>
                 <p><a href="/searchcheque">Search by Cheque</a></p>
+                <p><a href="/vendor">Vendor</a></p>
             </div>
         </nav>
     </header>
@@ -116,7 +117,12 @@
             <label for="">Cheque No:</label>
             <input type="number" name="chqno" required><br><br>
             <label for="">Vendor:</label>
-            <input type="text" name="vendor" required><br><br>
+            <select name="vendor" required>
+            <option value="" disabled selected>Select Vendor</option>
+                {% for v in vendor_list %}
+             <option value="{{ v }}">{{ v }}</option>
+                {% endfor %}
+            </select><br><br>
             <label for="">Amount:</label>
             <input type="number" name="amount" required><br><br>
             <label for="">Issue Date:</label>

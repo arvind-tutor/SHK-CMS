@@ -5,23 +5,23 @@ from datetime import *
 app = Flask(__name__)
 app.secret_key = 'shk-cms-secret-key'
 
-def connect_db():
-    return mysql.connector.connect(
-        host="sql12.freesqldatabase.com",
-        user="sql12780757",
-        password="SI5nLl7W1R",
-        database="sql12780757",
-        port=3306
-    )
-
-
 # def connect_db():
 #     return mysql.connector.connect(
-#         host="localhost",
-#         user="root",
-#         password="qwerty@123",
-#         database="shk",
+#         host="sql12.freesqldatabase.com",
+#         user="sql12780757",
+#         password="SI5nLl7W1R",
+#         database="sql12780757",
+#         port=3306
 #     )
+
+
+def connect_db():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="qwerty@123",
+        database="shk",
+    )
 
 def init_db():
     conn = connect_db()
@@ -41,6 +41,13 @@ def init_db():
     result_date = cursor.fetchone()
     if not result_date:
         cursor.execute("ALTER TABLE cms ADD COLUMN status_date DATE")
+    
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS vendors (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(100) UNIQUE
+    );
+    """)
     conn.commit()
     conn.close()
 
@@ -186,6 +193,8 @@ def custom_range():
 def index():
     conn = connect_db()
     cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT name FROM vendors order by name asc")
+    vendor_list = [row['name'] for row in cursor.fetchall()]
 
     if request.method == 'POST':
         bank=request.form['bank']
@@ -210,10 +219,17 @@ def index():
     cursor.execute("SELECT * FROM cms order by ID desc limit 5")
     data = cursor.fetchall()
     conn.close()
-    return render_template('chequeentry.html', records=data)
+    return render_template('chequeentry.html', records=data,vendor_list=vendor_list)
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
+    conn = connect_db()
+    cursor = conn.cursor(dictionary=True)
+
+    # Fetch vendor list
+    cursor.execute("SELECT name FROM vendors ORDER BY name ASC")
+    vendor_list = [row['name'] for row in cursor.fetchall()]
+
     if request.method == 'POST':
         vendor = request.form['vendor']
         from_date = request.form['from_date']
@@ -221,9 +237,6 @@ def search():
 
         from_display = datetime.strptime(from_date, "%Y-%m-%d").strftime("%d-%m-%Y")
         to_display = datetime.strptime(to_date, "%Y-%m-%d").strftime("%d-%m-%Y")
-
-        conn = connect_db()
-        cursor = conn.cursor(dictionary=True)
 
         cursor.execute("SELECT * FROM cms WHERE vendor= %s and post_date BETWEEN %s AND %s", (vendor,from_date, to_date))
         vendor_results = cursor.fetchall()
@@ -240,11 +253,13 @@ def search():
             vendor=vendor,
             vendor_results=vendor_results,
             from_display=from_display,
-            to_display=to_display
+            to_display=to_display,
+            vendor_list=vendor_list  # pass vendor list here
         )
     else:
-        # For GET request, just show the empty search form
-        return render_template('search.html', vendor_results=[], count5=0, total5=0, vendor="", from_display="", to_display="")
+        conn.close()
+        # For GET request, show form with vendors
+        return render_template('search.html', vendor_results=[], count5=0, total5=0, vendor="", from_display="", to_display="", vendor_list=vendor_list)
 
 @app.route('/searchcheque', methods=['GET', 'POST'])
 def searchcheque():
@@ -300,10 +315,29 @@ def updatestatus():
     flash(f"✅ Cheque {cheque_no} status updated to {new_status}!", "success")
     return redirect('/statusupdate')
 
+@app.route('/vendor', methods=['GET', 'POST'])
+def vendor():
+    conn = connect_db()
+    cursor = conn.cursor(dictionary=True)
 
-if __name__ == '__main__':
-    init_db()  # create table
-    app.run(debug=False, host='0.0.0.0', port=10000)
+    if request.method == 'POST':
+        name = request.form['vendor_name']
+        try:
+            cursor.execute("INSERT INTO vendors (name) VALUES (%s)", (name,))
+            conn.commit()
+            flash(f"✅ Vendor '{name}' added successfully!", "success")
+        except mysql.connector.IntegrityError:
+            flash(f"❌ Vendor '{name}' already exists!", "error")
+
+    cursor.execute("SELECT * FROM vendors")
+    vendors = cursor.fetchall()
+
+    conn.close()
+    return render_template('vendor.html', vendors=vendors)
 
 # if __name__ == '__main__':
-#     app.run(debug=True)
+#     init_db()  # create table
+#     app.run(debug=False, host='0.0.0.0', port=10000)
+
+if __name__ == '__main__':
+    app.run(debug=True)
