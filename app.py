@@ -14,6 +14,7 @@ def connect_db():
         port=3306
     )
 
+
 # def connect_db():
 #     return mysql.connector.connect(
 #         host="localhost",
