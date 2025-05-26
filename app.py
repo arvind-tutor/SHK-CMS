@@ -36,6 +36,10 @@ def init_db():
             vendor VARCHAR(50)
         );
     """)
+    cursor.execute("SHOW COLUMNS FROM cms LIKE 'status_date'")
+    result_date = cursor.fetchone()
+    if not result_date:
+        cursor.execute("ALTER TABLE cms ADD COLUMN status_date DATE")
     conn.commit()
     conn.close()
 
