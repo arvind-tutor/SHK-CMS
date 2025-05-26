@@ -85,6 +85,7 @@
                     <th>Issue Date</th>
                     <th>Realisation Date</th>
                     <th>Vendor</th>
+                    <th>Status</th>
                 </tr>
                 {% for row1 in vendor_results %}
                 <tr>
@@ -94,6 +95,7 @@
                     <td>{{ row1.issue_date }}</td>
                     <td>{{ row1.post_date }}</td>
                     <td>{{ row1.vendor }}</td>
+                    <td>{{ row1.status }}</td>
                 </tr>
                 {% endfor %}
             </table>
