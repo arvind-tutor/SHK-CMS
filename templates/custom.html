@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search By Vendor</title>
+    <title>Search by Date</title>
     <style>
          .nav-bar{
             background: black;
@@ -65,27 +65,20 @@
         </nav>
     </header> 
     <main>
-    <h1>SHK CHEQUE MANAGEMENT SYSTEM</h1>
-    <div class="form1">
-                <form method="POST" action="/search">
-                    <label for="vendor">Vendor name:</label>
-                    <select name="vendor" required>
-                    <option value="" disabled selected>Select Vendor</option>
-                        {% for v in vendor_list %}
-                    <option value="{{ v }}">{{ v }}</option>
-                        {% endfor %}
-                    </select><br><br>
+        <h1>SHK CHEQUE MANAGEMENT SYSTEM</h1>
+        <div class="form1">
+                <form method="POST" action="/custom">
                     <label for="from_date">From:</label>
                     <input type="date" id="from_date" name="from_date" required>
                     <label for="to_date">To:</label>
                     <input type="date" id="to_date" name="to_date" required>
                     <button type="submit">Search</button>
                 </form>
-    </div>
-    <Section class="one">
-            <h2>Cheques for {{vendor}} </h2>
-            <h3>Cheque Count:{{count5}} | Cheque Amount:₹ {{total5}}</h3>
-            <table>
+        </div>
+        <section class="one">
+        <h2>Cheques due between {{ from_display }} and {{ to_display }}</h2>
+        <h3>Cheque Count:{{count4}} | Cheque Amount:₹ {{total4}}</h3>
+        <table>
                 <tr>
                     <th>Bank</th>
                     <th>Cheque No</th>
@@ -96,20 +89,20 @@
                     <th>Status</th>
                     <th>Status Date</th>
                 </tr>
-                {% for row1 in vendor_results %}
+                {% for row4 in custom_results %}
                 <tr>
-                    <td>{{ row1.bank }}</td>
-                    <td>{{ row1.cheque_no }}</td>
-                    <td>{{ row1.amount }}</td>
-                    <td>{{ row1.issue_date }}</td>
-                    <td>{{ row1.post_date }}</td>
-                    <td>{{ row1.vendor }}</td>
-                    <td>{{ row1.status }}</td>
-                    <td>{{ row1.status_date }}</td>
+                    <td>{{ row4.bank }}</td>
+                    <td>{{ row4.cheque_no }}</td>
+                    <td>{{ row4.amount }}</td>
+                    <td>{{ row4.issue_date }}</td>
+                    <td>{{ row4.post_date }}</td>
+                    <td>{{ row4.vendor }}</td>
+                    <td>{{ row4.status }}</td>
+                    <td>{{ row4.status_date }}</td>
                 </tr>
                 {% endfor %}
-            </table>
-    </Section>
+        </table>
+        </section>
     </main>
 </body>
 </html>

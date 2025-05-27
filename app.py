@@ -54,141 +54,150 @@ def init_db():
 @app.route('/')
 def home():
     today = datetime.now().date()
-
-    # Ranges
-    day_15 = today + timedelta(days=15)
-    day_30 = today + timedelta(days=30)
-    day_45 = today + timedelta(days=45)
-
-    # Format for SQL
-    today_str = today.strftime("%Y-%m-%d")
-    day_15_str = day_15.strftime("%Y-%m-%d")
-    day_30_str = day_30.strftime("%Y-%m-%d")
-    day_45_str = day_45.strftime("%Y-%m-%d")
-
-    # Format for display
     current_date = today.strftime("%d-%m-%Y")
-    display_15 = day_15.strftime("%d-%m-%Y")
-    display_30 = day_30.strftime("%d-%m-%Y")
-    display_45 = day_45.strftime("%d-%m-%Y")
 
     conn = connect_db()
     cursor = conn.cursor(dictionary=True)
+    # today = datetime.now().date()
 
-    # Today to 15 days
-    cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (today_str, day_15_str))
-    range1 = cursor.fetchall()
-    cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (today_str, day_15_str))
-    result1 = cursor.fetchone()
-    a = int (result1['COUNT(*)'] or 0)
-    b = float (result1['SUM(amount)'] or 0)
-    # 16 to 30 days
-    cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (day_15_str, day_30_str))
-    range2 = cursor.fetchall()
-    cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (day_15_str, day_30_str))
-    result2 = cursor.fetchone()
-    c = int (result2['COUNT(*)'] or 0)
-    d = float (result2['SUM(amount)'] or 0)
+    # # Ranges
+    # day_15 = today + timedelta(days=15)
+    # day_30 = today + timedelta(days=30)
+    # day_45 = today + timedelta(days=45)
 
-    # 31 to 45 days
-    cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (day_30_str, day_45_str))
-    range3 = cursor.fetchall()
-    cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (day_30_str, day_45_str))
-    result3 = cursor.fetchone()
-    e = int (result3['COUNT(*)'] or 0)
-    f = float (result3['SUM(amount)'] or 0)
+    # # Format for SQL
+    # today_str = today.strftime("%Y-%m-%d")
+    # day_15_str = day_15.strftime("%Y-%m-%d")
+    # day_30_str = day_30.strftime("%Y-%m-%d")
+    # day_45_str = day_45.strftime("%Y-%m-%d")
+
+    # # Format for display
+    # current_date = today.strftime("%d-%m-%Y")
+    # display_15 = day_15.strftime("%d-%m-%Y")
+    # display_30 = day_30.strftime("%d-%m-%Y")
+    # display_45 = day_45.strftime("%d-%m-%Y")
+
+    
+
+    # # Today to 15 days
+    # cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (today_str, day_15_str))
+    # range1 = cursor.fetchall()
+    # cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (today_str, day_15_str))
+    # result1 = cursor.fetchone()
+    # a = int (result1['COUNT(*)'] or 0)
+    # b = float (result1['SUM(amount)'] or 0)
+    # # 16 to 30 days
+    # cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (day_15_str, day_30_str))
+    # range2 = cursor.fetchall()
+    # cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (day_15_str, day_30_str))
+    # result2 = cursor.fetchone()
+    # c = int (result2['COUNT(*)'] or 0)
+    # d = float (result2['SUM(amount)'] or 0)
+
+    # # 31 to 45 days
+    # cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (day_30_str, day_45_str))
+    # range3 = cursor.fetchall()
+    # cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (day_30_str, day_45_str))
+    # result3 = cursor.fetchone()
+    # e = int (result3['COUNT(*)'] or 0)
+    # f = float (result3['SUM(amount)'] or 0)
+
+    # custom
+    cursor.execute("SELECT COUNT(*) FROM cms")
+    total_cheques = int(cursor.fetchone()['COUNT(*)'] or 0)
+
+    cursor.execute("SELECT COUNT(*) FROM cms WHERE status = %s", ("Active",))
+    active_cheques = int(cursor.fetchone()['COUNT(*)'] or 0)
+
+    cursor.execute("SELECT COUNT(*) FROM cms WHERE status = %s", ("Cashed",))
+    cashed_cheques = int(cursor.fetchone()['COUNT(*)'] or 0)
+
+    cursor.execute("SELECT COUNT(*) FROM cms WHERE status = %s", ("Cancelled",))
+    cancelled_cheques = int(cursor.fetchone()['COUNT(*)'] or 0)
+
+    cursor.execute("SELECT COUNT(*) FROM cms WHERE status = %s", ("Bounced",))
+    bounced_cheques = int(cursor.fetchone()['COUNT(*)'] or 0)
+
+    cursor.execute("SELECT COUNT(*) FROM cms WHERE status = %s", ("Mistake",))
+    mistake_cheques = int(cursor.fetchone()['COUNT(*)'] or 0)
+
+    # Prepare a list of 7 days
+    days = []
+    for i in range(7):
+        day = today + timedelta(days=i)
+        day_str = day.strftime("%Y-%m-%d")
+        day_display = day.strftime("%d-%m-%Y")
+        # Fetch count and sum for that day
+        cursor.execute("SELECT COUNT(*) as c, SUM(amount) as s FROM cms WHERE post_date = %s", (day_str,))
+        result = cursor.fetchone()
+        count = int(result['c'] or 0)
+        amount = float(result['s'] or 0)
+        days.append({'date': day_display, 'count': count, 'amount': amount})
+
 
     conn.close()
 
     return render_template(
         'index.html',
         current_date=current_date,
-        display_15=display_15,
-        display_30=display_30,
-        display_45=display_45,
-        range1=range1,
-        range2=range2,
-        range3=range3,
-        count1=a,
-        total1=b,
-        count2=c,
-        total2=d,
-        count3=e,
-        total3=f,
+        days=days,
+        # current_date=current_date,
+        # display_15=display_15,
+        # display_30=display_30,
+        # display_45=display_45,
+        # range1=range1,
+        # range2=range2,
+        # range3=range3,
+        # count1=a,
+        # total1=b,
+        # count2=c,
+        # total2=d,
+        # count3=e,
+        # total3=f,
+        ci=total_cheques,
+        ca=active_cheques,
+        cc=cashed_cheques,
+        cn=cancelled_cheques,
+        cb=bounced_cheques,
+        cm=mistake_cheques,
+
     )
 
-@app.route('/custom', methods=['POST'])
+@app.route('/custom', methods=['GET', 'POST'])
 def custom_range():
-    from_date = request.form['from_date']
-    to_date = request.form['to_date']
-
-    from_display = datetime.strptime(from_date, "%Y-%m-%d").strftime("%d-%m-%Y")
-    to_display = datetime.strptime(to_date, "%Y-%m-%d").strftime("%d-%m-%Y")
-
-    today = datetime.now().date()
-    day_15 = today + timedelta(days=15)
-    day_30 = today + timedelta(days=30)
-    day_45 = today + timedelta(days=45)
-
     conn = connect_db()
     cursor = conn.cursor(dictionary=True)
 
-    # Custom range
-    cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (from_date, to_date))
-    custom_results = cursor.fetchall()
-    cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (from_date, to_date))
-    result4 = cursor.fetchone()
-    g = int (result4['COUNT(*)'] or 0)
-    h = float (result4['SUM(amount)'] or 0)
+    if request.method == 'POST':
+        from_date = request.form['from_date']
+        to_date = request.form['to_date']
+        from_display = datetime.strptime(from_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+        to_display = datetime.strptime(to_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+        today = datetime.now().date()
+        # Custom range
+        cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (from_date, to_date))
+        custom_results = cursor.fetchall()
+        cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (from_date, to_date))
+        result4 = cursor.fetchone()
+        g = int (result4['COUNT(*)'] or 0)
+        h = float (result4['SUM(amount)'] or 0)
+        
+        conn.close()
 
-    # Today to 15 days
-    cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (today, day_15))
-    range1 = cursor.fetchall()
-    cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (today, day_15))
-    result1 = cursor.fetchone()
-    a = int (result1['COUNT(*)'] or 0)
-    b = float (result1['SUM(amount)'] or 0)
-    # 16 to 30 days
-    cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (day_15, day_30))
-    range2 = cursor.fetchall()
-    cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (day_15, day_30))
-    result2 = cursor.fetchone()
-    c = int (result2['COUNT(*)'] or 0)
-    d = float (result2['SUM(amount)'] or 0)
-
-    # 31 to 45 days
-    cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (day_30, day_45))
-    range3 = cursor.fetchall()
-    cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (day_30, day_45))
-    result3 = cursor.fetchone()
-    e = int (result3['COUNT(*)'] or 0)
-    f = float (result3['SUM(amount)'] or 0)
-
-    
-    conn.close()
-
-    return render_template(
-        'index.html',
-        current_date=today.strftime("%d-%m-%Y"),
-        display_15=day_15.strftime("%d-%m-%Y"),
-        display_30=day_30.strftime("%d-%m-%Y"),
-        display_45=day_45.strftime("%d-%m-%Y"),
-        range1=range1,
-        range2=range2,
-        range3=range3,
-        count1=a,
-        total1=b,
-        count2=c,
-        total2=d,
-        count3=e,
-        total3=f,
-        count4=g,
-        total4=h,
-        custom_results=custom_results,
-        from_display=from_display,
-        to_display=to_display
-    )
-    
+        return render_template(
+            'custom.html',
+            current_date=today.strftime("%d-%m-%Y"),
+            count4=g,
+            total4=h,
+            custom_results=custom_results,
+            from_display=from_display,
+            to_display=to_display
+        )
+    else:
+        conn.close()
+        return render_template(
+            'custom.html',)
+        
 @app.route('/chequeentry', methods=['GET', 'POST'])
 def index():
     conn = connect_db()
