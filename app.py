@@ -344,9 +344,11 @@ def vendor():
     conn.close()
     return render_template('vendor.html', vendors=vendors)
 
+
 if __name__ == '__main__':
     init_db()  # create table
     app.run(debug=False, host='0.0.0.0', port=10000)
+
 
 # if __name__ == '__main__':
 #     app.run(debug=True)
