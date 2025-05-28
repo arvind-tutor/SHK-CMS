@@ -5,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Check Entry</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0; 
+        }
         main {
             background-color: beige;
             display: flex;
             align-items: center;
-            justify-content: center;
             flex-direction: column;
             height:90vh;
         }
@@ -19,13 +23,26 @@
             justify-content: center;
             flex-direction: column;
         }
-        .container1 button{
-            padding: 10px;
-            font-size: 15px;
-            border-radius: 15px;
+        .btncontainer {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;  /* Space above button */
+        }
+        .btncontainer button {
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 10px;
             border: none;
-            outline: none;
-            background-color:lightsalmon;
+            background-color: lightblue;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        input, select, option {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #aaa;
+            width: 100px; /* Adjust as needed */
+            height: 30px;
         }
         table,tr,td,th{
             border:1px solid black;
@@ -33,49 +50,131 @@
             padding: 10px;
         }
         .nav-bar{
-    background: black;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    height: 10vh; 
-}
-.logo {
-    font-size: 1cm;
-}
-.items {
-    display: flex;
-    gap:1cm;
-    font-size: 0.5cm;
-}
-.items a{
-    color: white;
-    text-decoration: none;
-    transition: all 0.5s ease-in-out;
-}
-.items a:hover{
-    text-decoration: underline;
-    text-underline-offset: 0.5cm;
-    font-size: 0.6cm;
-}
-.alert {
-    padding: 10px;
-    margin: 15px auto;
-    width: 90%;
-    max-width: 600px;
-    border-radius: 5px;
-    text-align: center;
-  }
-  .alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-  }
-  .alert-error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-  }
+            background: black;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            height: 10vh; 
+        }
+        .logo {
+            font-size: 1cm;
+        }
+        .items {
+            display: flex;
+            gap:1cm;
+            font-size: 0.5cm;
+        }
+        .items a{
+            color: white;
+            text-decoration: none;
+            transition: all 0.5s ease-in-out;
+        }
+        .items a:hover{
+            text-decoration: underline;
+            text-underline-offset: 0.5cm;
+            font-size: 0.6cm;
+        }
+        .alert {
+            padding: 10px;
+            margin: 15px auto;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        h2 {
+            text-align: center;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 20px;
+            max-width: 500px;
+        }
+
+        .form-grid-4 {
+            display: grid;
+            grid-template-columns: 150px 200px 150px 200px;
+            gap: 10px 20px;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .form-grid-4 label {
+            justify-self: end;
+            align-self: center;
+        }
+
+        .form-grid-4 input,
+        .form-grid-4 select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #aaa;
+        }
+
+        .btncontainer {
+            grid-column: 1 / -1; /* Button spans all 4 columns */
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .btncontainer button {
+            padding: 10px 20px;
+            background-color: lightblue;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100px;
+            font-size: 15px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: beige;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+        }
+        .modal-content p {
+            margin: 10px 0;
+        }
+        .modal-content button {
+            padding: 8px 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #saveBtn {
+            background-color: green;
+            color: white;
+        }
+        #modifyBtn {
+            background-color: orange;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -86,9 +185,7 @@
                 <p><a href="/">Dashboard</a></p>
                 <p><a href="/chequeentry">Cheque Entry</a></p>
                 <p><a href="/statusupdate">Status Update</a></p>
-                <p><a href="/custom">Search by Date</a></p>
-                <p><a href="/search">Search by Vendor</a></p>
-                <p><a href="/searchcheque">Search by Cheque</a></p>
+                <p><a href="/search">Search</a></p>
                 <p><a href="/vendor">Vendor</a></p>
             </div>
         </nav>
@@ -105,33 +202,60 @@
     {% endif %}
     {% endwith %}
     <main>
+    <h1>SHK CHEQUE MANAGEMENT SYSTEM</h1>
     <section class="container1">
-        <h1>SHK CHEQUE MANAGEMENT SYSTEM</h1>
-        <form method="POST" action="/chequeentry">
-            <label for="">Bank:</label>
-            <select name="bank" id="" required>
+        <br>
+        <h2>Cheque Entry</h2>
+        <br>
+        <form method="POST" action="/chequeentry" class="form-grid-4">
+            <label for="bank">Bank:</label>
+            <select name="bank" id="bank" required>
                 <option value="ICICI">ICICI</option>
                 <option value="HDFC">HDFC</option>
-                <option value="HDFC">HDFC Athiyan</option>
-            </select><br><br>
-            <label for="">Post Date:</label>
-            <input type="date" name="rdate" required><br><br>
-            <label for="">Cheque No:</label>
-            <input type="number" name="chqno" required><br><br>
-            <label for="">Vendor:</label>
-            <select name="vendor" required>
-            <option value="" disabled selected>Select Vendor</option>
+                <option value="HDFC Athiyan">HDFC Athiyan</option>
+            </select>
+
+            <label for="rdate">Post Date:</label>
+            <input type="date" name="rdate" id="rdate" required>
+
+            <label for="chqno">Cheque No:</label>
+            <input type="number" name="chqno" id="chqno" required>
+
+            <label for="vendor">Vendor:</label>
+            <select name="vendor" id="vendor" required>
+                <option value="" disabled selected>Select Vendor</option>
                 {% for v in vendor_list %}
-             <option value="{{ v }}">{{ v }}</option>
+                <option value="{{ v }}">{{ v }}</option>
                 {% endfor %}
-            </select><br><br>
-            <label for="">Amount:</label>
-            <input type="number" name="amount" required><br><br>
-            <label for="">Issue Date:</label>
-            <input type="date" name="idate" required><br><br>
-            <button type="submit">Add</button>
+            </select>
+
+            <label for="amount">Amount:</label>
+            <input type="number" name="amount" id="amount" required>
+
+            <label for="idate">Issue Date:</label>
+            <input type="date" name="idate" id="idate" required>
+
+            <!-- Centered Button -->
+            <div class="btncontainer">
+                <button type="submit">Add</button>
+            </div>
         </form>
     </section>
+    <!-- Popup Modal -->
+    <div id="confirmModal" class="modal">
+    <div class="modal-content">
+        <h2>Confirm Cheque Details</h2>
+        <p><strong>Bank:</strong> <span id="confirmBank"></span></p>
+        <p><strong>Post Date:</strong> <span id="confirmPostDate"></span></p>
+        <p><strong>Cheque No:</strong> <span id="confirmChequeNo"></span></p>
+        <p><strong>Vendor:</strong> <span id="confirmVendor"></span></p>
+        <p><strong>Amount:</strong> <span id="confirmAmount"></span></p>
+        <p><strong>Issue Date:</strong> <span id="confirmIssueDate"></span></p>
+        
+        <button id="saveBtn">Save</button>
+        <button id="modifyBtn">Modify</button>
+    </div>
+    </div>
     <br><br>
     <h1>Last 5 Cheques</h1>
     <section class="container2">
@@ -167,6 +291,27 @@
             alert.style.display = 'none';
             });
         }, 3000); // 3 seconds
+
+        document.querySelector('.form-grid-4').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent form submission
+            // Get form values
+            document.getElementById('confirmBank').textContent = document.getElementById('bank').value;
+            document.getElementById('confirmPostDate').textContent = document.getElementById('rdate').value;
+            document.getElementById('confirmChequeNo').textContent = document.getElementById('chqno').value;
+            document.getElementById('confirmVendor').textContent = document.getElementById('vendor').value;
+            document.getElementById('confirmAmount').textContent = document.getElementById('amount').value;
+            document.getElementById('confirmIssueDate').textContent = document.getElementById('idate').value;
+            // Show modal
+            document.getElementById('confirmModal').style.display = 'block';
+        });
+
+        document.getElementById('modifyBtn').addEventListener('click', function() {
+            document.getElementById('confirmModal').style.display = 'none';
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', function() {
+            document.querySelector('.form-grid-4').submit();
+        });
     </script>
 </body>
 </html>

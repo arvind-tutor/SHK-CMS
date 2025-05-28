@@ -58,50 +58,7 @@ def home():
 
     conn = connect_db()
     cursor = conn.cursor(dictionary=True)
-    # today = datetime.now().date()
-
-    # # Ranges
-    # day_15 = today + timedelta(days=15)
-    # day_30 = today + timedelta(days=30)
-    # day_45 = today + timedelta(days=45)
-
-    # # Format for SQL
-    # today_str = today.strftime("%Y-%m-%d")
-    # day_15_str = day_15.strftime("%Y-%m-%d")
-    # day_30_str = day_30.strftime("%Y-%m-%d")
-    # day_45_str = day_45.strftime("%Y-%m-%d")
-
-    # # Format for display
-    # current_date = today.strftime("%d-%m-%Y")
-    # display_15 = day_15.strftime("%d-%m-%Y")
-    # display_30 = day_30.strftime("%d-%m-%Y")
-    # display_45 = day_45.strftime("%d-%m-%Y")
-
     
-
-    # # Today to 15 days
-    # cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (today_str, day_15_str))
-    # range1 = cursor.fetchall()
-    # cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (today_str, day_15_str))
-    # result1 = cursor.fetchone()
-    # a = int (result1['COUNT(*)'] or 0)
-    # b = float (result1['SUM(amount)'] or 0)
-    # # 16 to 30 days
-    # cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (day_15_str, day_30_str))
-    # range2 = cursor.fetchall()
-    # cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (day_15_str, day_30_str))
-    # result2 = cursor.fetchone()
-    # c = int (result2['COUNT(*)'] or 0)
-    # d = float (result2['SUM(amount)'] or 0)
-
-    # # 31 to 45 days
-    # cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (day_30_str, day_45_str))
-    # range3 = cursor.fetchall()
-    # cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (day_30_str, day_45_str))
-    # result3 = cursor.fetchone()
-    # e = int (result3['COUNT(*)'] or 0)
-    # f = float (result3['SUM(amount)'] or 0)
-
     # custom
     cursor.execute("SELECT COUNT(*) FROM cms")
     total_cheques = int(cursor.fetchone()['COUNT(*)'] or 0)
@@ -141,19 +98,6 @@ def home():
         'index.html',
         current_date=current_date,
         days=days,
-        # current_date=current_date,
-        # display_15=display_15,
-        # display_30=display_30,
-        # display_45=display_45,
-        # range1=range1,
-        # range2=range2,
-        # range3=range3,
-        # count1=a,
-        # total1=b,
-        # count2=c,
-        # total2=d,
-        # count3=e,
-        # total3=f,
         ci=total_cheques,
         ca=active_cheques,
         cc=cashed_cheques,
@@ -162,42 +106,7 @@ def home():
         cm=mistake_cheques,
 
     )
-
-@app.route('/custom', methods=['GET', 'POST'])
-def custom_range():
-    conn = connect_db()
-    cursor = conn.cursor(dictionary=True)
-
-    if request.method == 'POST':
-        from_date = request.form['from_date']
-        to_date = request.form['to_date']
-        from_display = datetime.strptime(from_date, "%Y-%m-%d").strftime("%d-%m-%Y")
-        to_display = datetime.strptime(to_date, "%Y-%m-%d").strftime("%d-%m-%Y")
-        today = datetime.now().date()
-        # Custom range
-        cursor.execute("SELECT * FROM cms WHERE post_date BETWEEN %s AND %s", (from_date, to_date))
-        custom_results = cursor.fetchall()
-        cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE post_date BETWEEN %s AND %s", (from_date, to_date))
-        result4 = cursor.fetchone()
-        g = int (result4['COUNT(*)'] or 0)
-        h = float (result4['SUM(amount)'] or 0)
-        
-        conn.close()
-
-        return render_template(
-            'custom.html',
-            current_date=today.strftime("%d-%m-%Y"),
-            count4=g,
-            total4=h,
-            custom_results=custom_results,
-            from_display=from_display,
-            to_display=to_display
-        )
-    else:
-        conn.close()
-        return render_template(
-            'custom.html',)
-        
+ 
 @app.route('/chequeentry', methods=['GET', 'POST'])
 def index():
     conn = connect_db()
@@ -229,66 +138,6 @@ def index():
     data = cursor.fetchall()
     conn.close()
     return render_template('chequeentry.html', records=data,vendor_list=vendor_list)
-
-@app.route('/search', methods=['GET', 'POST'])
-def search():
-    conn = connect_db()
-    cursor = conn.cursor(dictionary=True)
-
-    # Fetch vendor list
-    cursor.execute("SELECT name FROM vendors ORDER BY name ASC")
-    vendor_list = [row['name'] for row in cursor.fetchall()]
-
-    if request.method == 'POST':
-        vendor = request.form['vendor']
-        from_date = request.form['from_date']
-        to_date = request.form['to_date']
-
-        from_display = datetime.strptime(from_date, "%Y-%m-%d").strftime("%d-%m-%Y")
-        to_display = datetime.strptime(to_date, "%Y-%m-%d").strftime("%d-%m-%Y")
-
-        cursor.execute("SELECT * FROM cms WHERE vendor= %s and post_date BETWEEN %s AND %s", (vendor,from_date, to_date))
-        vendor_results = cursor.fetchall()
-        cursor.execute("SELECT COUNT(*), SUM(amount) FROM cms WHERE vendor= %s and post_date BETWEEN %s AND %s", (vendor,from_date, to_date))
-        result5 = cursor.fetchone()
-        count5 = int(result5['COUNT(*)'] or 0)
-        total5 = float(result5['SUM(amount)'] or 0)
-        
-        conn.close()
-        return render_template(
-            'search.html',
-            count5=count5,
-            total5=total5,
-            vendor=vendor,
-            vendor_results=vendor_results,
-            from_display=from_display,
-            to_display=to_display,
-            vendor_list=vendor_list  # pass vendor list here
-        )
-    else:
-        conn.close()
-        # For GET request, show form with vendors
-        return render_template('search.html', vendor_results=[], count5=0, total5=0, vendor="", from_display="", to_display="", vendor_list=vendor_list)
-
-@app.route('/searchcheque', methods=['GET', 'POST'])
-def searchcheque():
-    if request.method == 'POST':
-        cheque_no = int(request.form['chequeno'])
-        conn = connect_db()
-        cursor = conn.cursor(dictionary=True)
-
-        cursor.execute("SELECT * FROM cms WHERE cheque_no = %s", (cheque_no,))
-        cheque_results = cursor.fetchall()
-        
-        conn.close()
-        return render_template(
-            'cheque.html',
-            cheque_results=cheque_results,
-        )
-    else:
-        # For GET request, just show the empty search form
-        return render_template('cheque.html', cheque_results=[])
-
 
 @app.route('/statusupdate', methods=['GET', 'POST'])
 def statusupdate():
@@ -323,6 +172,66 @@ def updatestatus():
 
     flash(f"✅ Cheque {cheque_no} status updated to {new_status}!", "success")
     return redirect('/statusupdate')
+
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    conn = connect_db()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT DISTINCT vendor FROM cms")
+    vendor_list = [row['vendor'] for row in cursor.fetchall()]
+
+    results = []
+    total_cheques = 0
+    active_cheques = 0
+    total_amount = 0
+    cashed_amount = 0
+    active_amount = 0
+
+    if request.method == 'POST':
+        query = "SELECT * FROM cms WHERE 1=1"
+        summary_query = "SELECT COUNT(*) as total_cheques, SUM(amount) as total_amount, SUM(CASE WHEN status='Active' THEN 1 ELSE 0 END) as active_cheques, SUM(CASE WHEN status='Cashed' THEN amount ELSE 0 END) as cashed_amount, SUM(CASE WHEN status='Active' THEN amount ELSE 0 END) as active_amount FROM cms WHERE 1=1"
+        where_clauses = ""
+        params = []
+
+        bank = request.form.get('bank')
+        vendor = request.form.get('vendor')
+        cheque_no = request.form.get('cheque_no')
+        from_date = request.form.get('from_date')
+        to_date = request.form.get('to_date')
+
+        if bank:
+            where_clauses += " AND bank=%s"
+            params.append(bank)
+        if vendor:
+            where_clauses += " AND vendor=%s"
+            params.append(vendor)
+        if cheque_no:
+            where_clauses += " AND cheque_no=%s"
+            params.append(cheque_no)
+        if from_date and to_date:
+            where_clauses += " AND post_date BETWEEN %s AND %s"
+            params.append(from_date)
+            params.append(to_date)
+
+        # Final Queries
+        cursor.execute(query + where_clauses, tuple(params))
+        results = cursor.fetchall()
+
+        cursor.execute(summary_query + where_clauses, tuple(params))
+        summary = cursor.fetchone()
+        total_cheques = summary['total_cheques'] or 0
+        total_amount = summary['total_amount'] or 0
+        active_cheques = summary['active_cheques'] or 0
+        cashed_amount = summary['cashed_amount'] or 0
+        active_amount = summary['active_amount'] or 0
+
+    conn.close()
+    return render_template('search.html', vendor_list=vendor_list, results=results,
+                           total_cheques=total_cheques, active_cheques=active_cheques,
+                           total_amount=total_amount, cashed_amount=cashed_amount,
+                           active_amount=active_amount)
+
+
 
 @app.route('/vendor', methods=['GET', 'POST'])
 def vendor():

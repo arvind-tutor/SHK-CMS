@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Vendor</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0; 
+        }
          .nav-bar{
             background: black;
             color: white;
@@ -58,6 +63,32 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+        main {
+            background-color: beige;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            height:90vh;
+        }
+        h1,h2 {
+            text-align: center;
+        }
+       input, select, option {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #aaa;
+            width: 100px; /* Adjust as needed */
+            height: 30px;
+        }
+         button {
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 10px;
+            border: none;
+            background-color: lightblue;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
     </style>
 </head>
@@ -69,9 +100,7 @@
                 <p><a href="/">Dashboard</a></p>
                 <p><a href="/chequeentry">Cheque Entry</a></p>
                 <p><a href="/statusupdate">Status Update</a></p>
-                <p><a href="/custom">Search by Date</a></p>
-                <p><a href="/search">Search by Vendor</a></p>
-                <p><a href="/searchcheque">Search by Cheque</a></p>
+                <p><a href="/search">Search</a></p>
                 <p><a href="/vendor">Vendor</a></p>
             </div>
         </nav>
@@ -87,25 +116,34 @@
         </div>
       {% endif %}
     {% endwith %}
-    <h1>Add Vendor</h1>
+    <main>
+    <h1>SHK CHEQUE MANAGEMENT SYSTEM</h1>
+    <section class="one">
+    <br>
+    <h2>Add Vendor</h2>
+    <br>
     <form method="POST">
         <label for="vendor_name">Vendor Name:</label>
         <input type="text" name="vendor_name" required>
         <button type="submit">Add Vendor</button>
     </form>
+    </section>
+    <section class="two">
+    <br>
     <h2>Existing Vendors</h2>
+    <br>
     <table>
         <tr>
-            <th>ID</th>
             <th>Vendor Name</th>
         </tr>
         {% for v in vendors %}
         <tr>
-            <td>{{ v.id }}</td>
             <td>{{ v.name }}</td>
         </tr>
         {% endfor %}
     </table>
+    </section>
+    </main>
     <script>
         setTimeout(() => {
             document.querySelectorAll('.alert').forEach(alert => {

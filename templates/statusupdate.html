@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Status Update</title>
     <style>
-         .nav-bar{
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0; 
+        }
+        .nav-bar{
             background: black;
             color: white;
             display: flex;
@@ -43,16 +48,15 @@
             background-color: beige;
             display: flex;
             align-items: center;
-            /* justify-content: center; */
             flex-direction: column;
             height:90vh;
         }
        .form-container {
             text-align: center;
-            margin-top: 50px;
+            margin-top: 10px;
         }
         .cheque-details {
-            margin-top: 20px;
+            margin-top: 10px;
         }
         button {
             padding: 10px 20px;
@@ -104,9 +108,7 @@
                 <p><a href="/">Dashboard</a></p>
                 <p><a href="/chequeentry">Cheque Entry</a></p>
                 <p><a href="/statusupdate">Status Update</a></p>
-                <p><a href="/custom">Search by Date</a></p>
-                <p><a href="/search">Search by Vendor</a></p>
-                <p><a href="/searchcheque">Search by Cheque</a></p>
+                <p><a href="/search">Search</a></p>
                 <p><a href="/vendor">Vendor</a></p>
             </div>
         </nav>
@@ -124,14 +126,15 @@
     {% endwith %}
     <main>
     <h1>SHK CHEQUE MANAGEMENT SYSTEM</h1>
-    <div class="form-container">
-        <h1>Status Update</h1>
+    <section class="form-container">
+        <h2>Status Update</h2>
         <form method="POST" action="/statusupdate">
             <label for="cheque_no">Enter Cheque No:</label>
             <input type="number" name="cheque_no" required>
             <button type="submit">Search</button>
         </form>
-
+    </section>
+    <section>
         {% if cheque %}
             <div class="cheque-details">
                 <h2>Cheque Details</h2>
@@ -151,9 +154,8 @@
                     <button type="submit" name="status" value="Cancelled" {% if cheque.status != 'Active' %}disabled{% endif %}>Cancelled</button>
                     <button type="submit" name="status" value="Bounced" {% if cheque.status != 'Active' %}disabled{% endif %}>Bounced</button>
                 </form>
-            </div>
         {% endif %}
-    </div>
+    </section>
     </main>
      <script>
         setTimeout(() => {

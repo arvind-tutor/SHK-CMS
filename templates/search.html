@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search By Vendor</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0; 
+        }
          .nav-bar{
             background: black;
             color: white;
@@ -43,10 +48,29 @@
             background-color: beige;
             display: flex;
             align-items: center;
-            /* justify-content: center; */
             flex-direction: column;
             height:90vh;
         }
+        h2 {
+            text-align: center;
+        }
+       input, select, option {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #aaa;
+            width: 100px; /* Adjust as needed */
+            height: 30px;
+        }
+         button {
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 10px;
+            border: none;
+            background-color: lightblue;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
     </style>
 </head>
 <body>
@@ -57,58 +81,85 @@
                 <p><a href="/">Dashboard</a></p>
                 <p><a href="/chequeentry">Cheque Entry</a></p>
                 <p><a href="/statusupdate">Status Update</a></p>
-                <p><a href="/custom">Search by Date</a></p>
-                <p><a href="/search">Search by Vendor</a></p>
-                <p><a href="/searchcheque">Search by Cheque</a></p>
+                <p><a href="/search">Search</a></p>
                 <p><a href="/vendor">Vendor</a></p>
             </div>
         </nav>
     </header> 
     <main>
     <h1>SHK CHEQUE MANAGEMENT SYSTEM</h1>
-    <div class="form1">
-                <form method="POST" action="/search">
-                    <label for="vendor">Vendor name:</label>
-                    <select name="vendor" required>
-                    <option value="" disabled selected>Select Vendor</option>
-                        {% for v in vendor_list %}
-                    <option value="{{ v }}">{{ v }}</option>
-                        {% endfor %}
-                    </select><br><br>
-                    <label for="from_date">From:</label>
-                    <input type="date" id="from_date" name="from_date" required>
-                    <label for="to_date">To:</label>
-                    <input type="date" id="to_date" name="to_date" required>
-                    <button type="submit">Search</button>
-                </form>
-    </div>
-    <Section class="one">
-            <h2>Cheques for {{vendor}} </h2>
-            <h3>Cheque Count:{{count5}} | Cheque Amount:₹ {{total5}}</h3>
-            <table>
-                <tr>
-                    <th>Bank</th>
-                    <th>Cheque No</th>
-                    <th>Amount</th>
-                    <th>Issue Date</th>
-                    <th>Realisation Date</th>
-                    <th>Vendor</th>
-                    <th>Status</th>
-                    <th>Status Date</th>
-                </tr>
-                {% for row1 in vendor_results %}
-                <tr>
-                    <td>{{ row1.bank }}</td>
-                    <td>{{ row1.cheque_no }}</td>
-                    <td>{{ row1.amount }}</td>
-                    <td>{{ row1.issue_date }}</td>
-                    <td>{{ row1.post_date }}</td>
-                    <td>{{ row1.vendor }}</td>
-                    <td>{{ row1.status }}</td>
-                    <td>{{ row1.status_date }}</td>
-                </tr>
+    <section class="form1">
+        <br>
+        <h2>Search</h2>
+        <br>
+        <form method="POST" action="/search" class="search-form">
+            <label>Bank:</label>
+            <select name="bank" required>
+                <option value="ICICI">ICICI</option>
+                <option value="HDFC">HDFC</option>
+                <option value="HDFC Athiyan">HDFC Athiyan</option>
+            </select>
+            <label>Vendor:</label>
+            <select name="vendor">
+                <option value="">All Vendors</option>
+                {% for v in vendor_list %}
+                <option value="{{ v }}">{{ v }}</option>
                 {% endfor %}
-            </table>
+            </select>
+            <label>Cheque No:</label>
+            <input type="number" name="cheque_no">
+            <label>From Date:</label>
+            <input type="date" name="from_date">
+            <label>To Date:</label>
+            <input type="date" name="to_date">
+            <button type="submit">Search</button>
+        </form>
+    </section>
+    <br><br>
+    <section>
+        <table>
+            <tr>
+                <th>Cheque Count:</th>
+                <th>Active Cheque Count:</th>
+                <th>Amount:</th>
+                <th>Amount Cashed:</th>
+                <th>Amount to be Cashed:</th>
+            </tr>
+            <tr>
+                <td>{{ total_cheques }}</td>
+                <td>{{ active_cheques }}</td>
+                <td>₹ {{ total_amount }}</td>
+                <td>₹ {{ cashed_amount }}</td>
+                <td>₹ {{ active_amount }}</td>
+            </tr>
+        </table>
+    </section>
+    <br><br>
+    <Section class="one">
+        <table>
+            <tr>
+                <th>Bank</th>
+                <th>Cheque No</th>
+                <th>Amount</th>
+                <th>Issue Date</th>
+                <th>Realisation Date</th>
+                <th>Vendor</th>
+                <th>Status</th>
+                <th>Status Date</th>
+            </tr>
+            {% for row in results %}
+            <tr>
+                <td>{{ row.bank }}</td>
+                <td>{{ row.cheque_no }}</td>
+                <td>{{ row.amount }}</td>
+                <td>{{ row.issue_date }}</td>
+                <td>{{ row.post_date }}</td>
+                <td>{{ row.vendor }}</td>
+                <td>{{ row.status }}</td>
+                <td>{{ row.status_date }}</td>
+            </tr>
+            {% endfor %}
+        </table>      
     </Section>
     </main>
 </body>
