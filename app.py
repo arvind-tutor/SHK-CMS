@@ -18,8 +18,8 @@ app.secret_key = 'shk-cms-secret-key'
 def connect_db():
     return mysql.connector.connect(
         host="localhost",
-        user="root",
-        password="qwerty@123",
+        user="shkuser",
+        password="shk1234",
         database="shk",
     )
 
