@@ -5,23 +5,23 @@ from datetime import *
 app = Flask(__name__)
 app.secret_key = 'shk-cms-secret-key'
 
-def connect_db():
-    return mysql.connector.connect(
-        host="sql12.freesqldatabase.com",
-        user="sql12780757",
-        password="SI5nLl7W1R",
-        database="sql12780757",
-        port=3306
-    )
-
-
 # def connect_db():
 #     return mysql.connector.connect(
-#         host="localhost",
-#         user="root",
-#         password="qwerty@123",
-#         database="shk",
+#         host="sql12.freesqldatabase.com",
+#         user="sql12780757",
+#         password="SI5nLl7W1R",
+#         database="sql12780757",
+#         port=3306
 #     )
+
+
+def connect_db():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="qwerty@123",
+        database="shk",
+    )
 
 def init_db():
     conn = connect_db()
@@ -254,10 +254,10 @@ def vendor():
     return render_template('vendor.html', vendors=vendors)
 
 
-if __name__ == '__main__':
-    init_db()  # create table
-    app.run(debug=False, host='0.0.0.0', port=10000)
-
-
 # if __name__ == '__main__':
-#     app.run(debug=True)
+#     init_db()  # create table
+#     app.run(debug=False, host='0.0.0.0', port=10000)
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
