@@ -58,8 +58,11 @@ def init_db():
 @app.route("/")
 def home():
     """
-    Dashboard: Collapsible weekly view (Current + next 3 weeks) + status pie
-    Fix: use consistent YYYY-MM-DD string keys for date lookups.
+    Dashboard:
+      • Collapsible 4-week view (Current + Next + 3rd + 4th)
+      • Current week panel open with 'Live' (Active) count
+      • Status pie summary below (mobile-first order handled in template)
+    This version keeps everything as Python date objects to avoid key-type issues.
     """
     today = datetime.now().date()
 
@@ -86,52 +89,52 @@ def home():
                     start_of_week + timedelta(days=7*k + 6))
                    for k in range(4)]
 
-    # Collect all 28 dates as strings (YYYY-MM-DD)
-    all_days_str = []
-    for (ws, we) in week_ranges:
-        d = ws
-        while d <= we:
-            all_days_str.append(d.strftime("%Y-%m-%d"))
-            d = d + timedelta(days=1)
-
-    # Single query for all 28 days, return date already formatted as string
-    placeholders = ",".join(["%s"] * len(all_days_str)) or "''"
-    cur.execute(
-        f"""
-        SELECT DATE_FORMAT(post_date, '%%Y-%%m-%%d') AS d,
-               COUNT(*) AS c,
-               COALESCE(SUM(amount), 0) AS s
-        FROM cms
-        WHERE post_date IN ({placeholders})
-        GROUP BY d
-        """,
-        tuple(all_days_str)
-    )
-    rows = cur.fetchall() or []
-
-    # Map: 'YYYY-MM-DD' -> {count, amount}
-    by_date = { r["d"]: {"count": int(r["c"] or 0), "amount": float(r["s"] or 0)} for r in rows }
-
-    def fmt(d): return d.strftime("%d-%m-%Y")
+    def fmt(d: date) -> str:
+        return d.strftime("%d-%m-%Y")
 
     weeks = []
+
     for idx, (ws, we) in enumerate(week_ranges):
+        # Query once per week, group by DATE(post_date)
+        cur.execute(
+            """
+            SELECT DATE(post_date) AS d,
+                   COUNT(*) AS c,
+                   COALESCE(SUM(amount), 0) AS s
+            FROM cms
+            WHERE post_date BETWEEN %s AND %s
+            GROUP BY DATE(post_date)
+            """,
+            (ws, we)
+        )
+        rows = cur.fetchall() or []
+
+        # Build dict keyed by Python date objects (NO strings)
+        by_date = {}
+        for r in rows:
+            # mysql-connector returns datetime.date for DATE() — perfect
+            d = r["d"]
+            by_date[d] = {
+                "count": int(r["c"] or 0),
+                "amount": float(r["s"] or 0),
+            }
+
+        # Fill all 7 days
         days = []
         total_amt = 0.0
         total_cnt = 0
         d = ws
         while d <= we:
-            key = d.strftime("%Y-%m-%d")  # string key
-            val = by_date.get(key, {"count": 0, "amount": 0.0})
+            val = by_date.get(d, {"count": 0, "amount": 0.0})
             days.append({
-                "date_iso": key,
+                "date_iso": d.isoformat(),
                 "date": fmt(d),
                 "count": val["count"],
-                "amount": val["amount"]
+                "amount": val["amount"],
             })
             total_amt += val["amount"]
             total_cnt += val["count"]
-            d = d + timedelta(days=1)
+            d += timedelta(days=1)
 
         # Active (live) in current week only
         active_in_week = 0
@@ -142,7 +145,7 @@ def home():
                 FROM cms
                 WHERE status='Active' AND post_date BETWEEN %s AND %s
                 """,
-                (ws.strftime("%Y-%m-%d"), we.strftime("%Y-%m-%d"))
+                (ws, we)
             )
             active_in_week = int((cur.fetchone() or {}).get("c") or 0)
 
@@ -153,7 +156,7 @@ def home():
             "total_amount": total_amt,
             "total_count": total_cnt,
             "active_count": active_in_week,
-            "days": days
+            "days": days,
         })
 
     conn.close()
@@ -161,6 +164,7 @@ def home():
     return render_template(
         "index.html",
         weeks=weeks,
+        # pie inputs
         ci=total_cheques,
         ca=active_cheques,
         cc=cashed_cheques,
