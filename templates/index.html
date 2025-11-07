@@ -7,15 +7,83 @@
 {% block content %}
 <h1 class="h4 mb-3">Dashboard</h1>
 
+<!-- Mobile-first: Weekly accordion FIRST, then the pie -->
 <div class="row g-3">
-  <!-- Status summary -->
-  <div class="col-12 col-lg-5">
+  <!-- Weekly Collapsible View -->
+  <div class="col-12">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white">
+        <strong>Cheques by Week (Current → 4th)</strong>
+      </div>
+      <div class="card-body">
+        <div class="accordion accordion-flush" id="weeksAccordion">
+          {% for w in weeks %}
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="h{{ w.index }}">
+              <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button"
+                      data-bs-toggle="collapse" data-bs-target="#c{{ w.index }}" aria-expanded="{{ 'true' if loop.first else 'false' }}"
+                      aria-controls="c{{ w.index }}">
+                <div class="d-flex w-100 justify-content-between align-items-center">
+                  <span class="fw-semibold">
+                    {{ w.title }} <span class="text-muted">({{ w.range_label }})</span>
+                  </span>
+                  <span class="badge text-bg-primary rounded-pill ms-2">
+                    Total ₹ {{ '%.2f'|format(w.total_amount or 0) }}
+                  </span>
+                  {% if loop.first %}
+                    <span class="badge text-bg-warning text-dark rounded-pill ms-2">
+                      Live {{ w.active_count }}
+                    </span>
+                  {% endif %}
+                </div>
+              </button>
+            </h2>
+            <div id="c{{ w.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" aria-labelledby="h{{ w.index }}" data-bs-parent="#weeksAccordion">
+              <div class="accordion-body">
+                <div class="table-responsive">
+                  <table class="table table-sm align-middle">
+                    <thead>
+                      <tr>
+                        <th style="min-width: 120px;">Date</th>
+                        <th class="text-end" style="min-width: 100px;">Amount</th>
+                        <th class="text-end" style="min-width: 90px;">Count</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for d in w.days %}
+                      <tr>
+                        <td>{{ d.date }}</td>
+                        <td class="text-end">₹ {{ '%.2f'|format(d.amount or 0) }}</td>
+                        <td class="text-end">{{ d.count }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                    <tfoot>
+                      <tr class="table-light">
+                        <th>Total</th>
+                        <th class="text-end">₹ {{ '%.2f'|format(w.total_amount or 0) }}</th>
+                        <th class="text-end">{{ w.total_count }}</th>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Summary + Pie -->
+  <div class="col-12">
     <div class="card shadow-sm">
       <div class="card-header bg-white">
         <strong>Status Summary</strong>
       </div>
       <div class="card-body">
-        <div class="table-responsive">
+        <div class="table-responsive mb-3">
           <table class="table table-sm align-middle">
             <tbody>
               <tr><th>Issued Cheques</th><td class="text-end fw-semibold">{{ ci }}</td></tr>
@@ -27,34 +95,7 @@
             </tbody>
           </table>
         </div>
-        <canvas id="statusPie" class="mt-2"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- 7-Day amounts -->
-  <div class="col-12 col-lg-7">
-    <div class="card shadow-sm">
-      <div class="card-header bg-white">
-        <strong>7-Day Cheque Amount</strong>
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-sm">
-            <thead>
-              <tr><th>Date</th><th class="text-end">Amount</th></tr>
-            </thead>
-            <tbody>
-              {% for day in days %}
-              <tr>
-                <td>{{ day.date }}</td>
-                <td class="text-end">₹ {{ day.amount }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        <canvas id="daysBar" class="mt-2"></canvas>
+        <canvas id="statusPie"></canvas>
       </div>
     </div>
   </div>
@@ -63,7 +104,7 @@
 
 {% block body_extra %}
 <script>
-  // Pie
+  // Status Pie
   new Chart(document.getElementById('statusPie'), {
     type: 'pie',
     data: {
@@ -71,15 +112,6 @@
       datasets: [{ data: [{{ ci }}, {{ ca }}, {{ cc }}, {{ cn }}, {{ cb }}, {{ cm }}] }]
     },
     options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-  });
-
-  // Bar
-  const labels = [{% for d in days %}"{{ d.date }}",{% endfor %}];
-  const data = [{% for d in days %}{{ d.amount }},{% endfor %}];
-  new Chart(document.getElementById('daysBar'), {
-    type: 'bar',
-    data: { labels, datasets: [{ label: 'Cheque Amount', data }] },
-    options: { responsive: true, scales: { y: { beginAtZero: true } } }
   });
 </script>
 {% endblock %}

@@ -58,20 +58,22 @@ def init_db():
 @app.route("/")
 def home():
     """
-    Dashboard: status counts + 7-day amount chart/table
+    Dashboard: Collapsible weekly view (Current + next 3 weeks) + status pie
+    - Each week header shows total amount (and Active count for current week)
+    - Expanding shows day-by-day cheque amount & count
     """
     today = datetime.now().date()
 
     conn = connect_db()
     cur = conn.cursor(dictionary=True)
 
-    # Totals
+    # ---- Status counts for pie ----
     cur.execute("SELECT COUNT(*) AS c FROM cms")
-    total_cheques = int(cur.fetchone().get("c") or 0)
+    total_cheques = int((cur.fetchone() or {}).get("c") or 0)
 
     def count_status(s):
         cur.execute("SELECT COUNT(*) AS c FROM cms WHERE status = %s", (s,))
-        return int(cur.fetchone().get("c") or 0)
+        return int((cur.fetchone() or {}).get("c") or 0)
 
     active_cheques    = count_status("Active")
     cashed_cheques    = count_status("Cashed")
@@ -79,23 +81,86 @@ def home():
     bounced_cheques   = count_status("Bounced")
     mistake_cheques   = count_status("Mistake")
 
-    # 7 days (today → next 6)
-    days = []
-    for i in range(7):
-        d = today + timedelta(days=i)
-        d_sql = d.strftime("%Y-%m-%d")
-        d_disp = d.strftime("%d-%m-%Y")
-        cur.execute("SELECT COUNT(*) AS c, SUM(amount) AS s FROM cms WHERE post_date = %s", (d_sql,))
-        row = cur.fetchone() or {}
-        count = int(row.get("c") or 0)
-        amount = float(row.get("s") or 0)
-        days.append({"date": d_disp, "count": count, "amount": amount})
+    # ---- Build 4 weeks (Mon–Sun) starting with current week ----
+    start_of_week = today - timedelta(days=today.weekday())  # Monday
+    week_ranges = [(start_of_week + timedelta(days=7*k),
+                    start_of_week + timedelta(days=7*k + 6))
+                   for k in range(4)]
+
+    # Collect all 28 dates once
+    all_days = []
+    for (ws, we) in week_ranges:
+        d = ws
+        while d <= we:
+            all_days.append(d)
+            d = d + timedelta(days=1)
+
+    # Single query for all 28 days
+    placeholders = ",".join(["%s"] * len(all_days))
+    cur.execute(
+        f"""
+        SELECT post_date AS d, COUNT(*) AS c, COALESCE(SUM(amount),0) AS s
+        FROM cms
+        WHERE post_date IN ({placeholders})
+        GROUP BY post_date
+        """,
+        tuple([d.strftime("%Y-%m-%d") for d in all_days])
+    )
+    rows = cur.fetchall() or []
+    by_date = { r["d"]: {"count": int(r["c"] or 0), "amount": float(r["s"] or 0)} for r in rows }
+
+    # Helper to format
+    def fmt(d): return d.strftime("%d-%m-%Y")
+
+    weeks = []
+    for idx, (ws, we) in enumerate(week_ranges):
+        # day-by-day
+        days = []
+        total_amt = 0.0
+        total_cnt = 0
+        d = ws
+        while d <= we:
+            key = d.strftime("%Y-%m-%d")
+            val = by_date.get(key, {"count": 0, "amount": 0.0})
+            days.append({
+                "date_iso": key,
+                "date": fmt(d),
+                "count": val["count"],
+                "amount": val["amount"]
+            })
+            total_amt += val["amount"]
+            total_cnt += val["count"]
+            d = d + timedelta(days=1)
+
+        # Active (live) in current week only
+        active_in_week = 0
+        if idx == 0:
+            cur.execute(
+                """
+                SELECT COUNT(*) AS c
+                FROM cms
+                WHERE status='Active' AND post_date BETWEEN %s AND %s
+                """,
+                (ws.strftime("%Y-%m-%d"), we.strftime("%Y-%m-%d"))
+            )
+            active_in_week = int((cur.fetchone() or {}).get("c") or 0)
+
+        weeks.append({
+            "index": idx,
+            "title": "Current Week" if idx == 0 else ( "Next Week" if idx == 1 else ( "3rd Week" if idx == 2 else "4th Week" )),
+            "range_label": f"{fmt(ws)} – {fmt(we)}",
+            "total_amount": total_amt,
+            "total_count": total_cnt,
+            "active_count": active_in_week,
+            "days": days
+        })
 
     conn.close()
 
     return render_template(
         "index.html",
-        days=days,
+        weeks=weeks,
+        # pie inputs
         ci=total_cheques,
         ca=active_cheques,
         cc=cashed_cheques,
@@ -103,6 +168,7 @@ def home():
         cb=bounced_cheques,
         cm=mistake_cheques,
     )
+
 
 @app.route("/chequeentry", methods=["GET", "POST"])
 def chequeentry():
