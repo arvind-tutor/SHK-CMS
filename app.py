@@ -197,10 +197,10 @@ def cheques_by_date_html(date):
     conn = connect_db()
     cur = conn.cursor(dictionary=True)
     cur.execute("""
-        SELECT vendor_name, cheque_no, amount, status
+        SELECT vendor, cheque_no, amount, status
         FROM cms
         WHERE post_date = %s
-        ORDER BY vendor_name
+        ORDER BY vendor
     """, (date,))
     rows = cur.fetchall()
     conn.close()
