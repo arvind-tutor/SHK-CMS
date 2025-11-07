@@ -59,8 +59,7 @@ def init_db():
 def home():
     """
     Dashboard: Collapsible weekly view (Current + next 3 weeks) + status pie
-    - Each week header shows total amount (and Active count for current week)
-    - Expanding shows day-by-day cheque amount & count
+    Fix: use consistent YYYY-MM-DD string keys for date lookups.
     """
     today = datetime.now().date()
 
@@ -87,40 +86,42 @@ def home():
                     start_of_week + timedelta(days=7*k + 6))
                    for k in range(4)]
 
-    # Collect all 28 dates once
-    all_days = []
+    # Collect all 28 dates as strings (YYYY-MM-DD)
+    all_days_str = []
     for (ws, we) in week_ranges:
         d = ws
         while d <= we:
-            all_days.append(d)
+            all_days_str.append(d.strftime("%Y-%m-%d"))
             d = d + timedelta(days=1)
 
-    # Single query for all 28 days
-    placeholders = ",".join(["%s"] * len(all_days))
+    # Single query for all 28 days, return date already formatted as string
+    placeholders = ",".join(["%s"] * len(all_days_str)) or "''"
     cur.execute(
         f"""
-        SELECT post_date AS d, COUNT(*) AS c, COALESCE(SUM(amount),0) AS s
+        SELECT DATE_FORMAT(post_date, '%%Y-%%m-%%d') AS d,
+               COUNT(*) AS c,
+               COALESCE(SUM(amount), 0) AS s
         FROM cms
         WHERE post_date IN ({placeholders})
-        GROUP BY post_date
+        GROUP BY d
         """,
-        tuple([d.strftime("%Y-%m-%d") for d in all_days])
+        tuple(all_days_str)
     )
     rows = cur.fetchall() or []
+
+    # Map: 'YYYY-MM-DD' -> {count, amount}
     by_date = { r["d"]: {"count": int(r["c"] or 0), "amount": float(r["s"] or 0)} for r in rows }
 
-    # Helper to format
     def fmt(d): return d.strftime("%d-%m-%Y")
 
     weeks = []
     for idx, (ws, we) in enumerate(week_ranges):
-        # day-by-day
         days = []
         total_amt = 0.0
         total_cnt = 0
         d = ws
         while d <= we:
-            key = d.strftime("%Y-%m-%d")
+            key = d.strftime("%Y-%m-%d")  # string key
             val = by_date.get(key, {"count": 0, "amount": 0.0})
             days.append({
                 "date_iso": key,
@@ -147,7 +148,7 @@ def home():
 
         weeks.append({
             "index": idx,
-            "title": "Current Week" if idx == 0 else ( "Next Week" if idx == 1 else ( "3rd Week" if idx == 2 else "4th Week" )),
+            "title": "Current Week" if idx == 0 else ("Next Week" if idx == 1 else ("3rd Week" if idx == 2 else "4th Week")),
             "range_label": f"{fmt(ws)} – {fmt(we)}",
             "total_amount": total_amt,
             "total_count": total_cnt,
@@ -160,7 +161,6 @@ def home():
     return render_template(
         "index.html",
         weeks=weeks,
-        # pie inputs
         ci=total_cheques,
         ca=active_cheques,
         cc=cashed_cheques,
