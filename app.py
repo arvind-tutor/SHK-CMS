@@ -57,12 +57,6 @@ def init_db():
 # ---------- Routes ----------
 @app.route("/")
 def home():
-    """
-    Dashboard: 
-      • NEW: 'Uncashed before Week 1' (all Active cheques up to previous Sunday)
-      • 4 weekly panels (Mon–Sun): current + next 3 weeks
-      • Status pie below
-    """
     today = datetime.now().date()
 
     conn = connect_db()
@@ -107,24 +101,16 @@ def home():
     )
     pre_rows = cur.fetchall() or []
 
-    pre_by_date = {}
-    for r in pre_rows:
-        d = r["d"]  # date object
-        pre_by_date[d] = {"count": int(r["c"] or 0), "amount": float(r["s"] or 0)}
+    pre_by_date = {r["d"]: {"count": int(r["c"] or 0), "amount": float(r["s"] or 0)} for r in pre_rows}
+    pre_total_amt = sum(v["amount"] for v in pre_by_date.values())
+    pre_total_cnt = sum(v["count"] for v in pre_by_date.values())
 
-    # Build chronological list
-    pre_days = []
-    pre_total_amt = 0.0
-    pre_total_cnt = 0
-    for d, v in sorted(pre_by_date.items(), key=lambda kv: kv[0]):
-        pre_days.append({
-            "date_iso": d.isoformat(),
-            "date": fmt(d),
-            "count": v["count"],
-            "amount": v["amount"],
-        })
-        pre_total_amt += v["amount"]
-        pre_total_cnt += v["count"]
+    pre_days = [{
+        "date_iso": d.isoformat(),
+        "date": fmt(d),
+        "count": v["count"],
+        "amount": v["amount"],
+    } for d, v in sorted(pre_by_date.items(), key=lambda kv: kv[0])]
 
     pre_week = {
         "title": "Uncashed before Week 1",
@@ -134,7 +120,7 @@ def home():
         "days": pre_days,
     }
 
-    # ---- 4 weeks ----
+    # ---- 4 weeks: only ACTIVE cheques ----
     weeks = []
     for idx, (ws, we) in enumerate(week_ranges):
         cur.execute(
@@ -144,17 +130,17 @@ def home():
                    COALESCE(SUM(amount), 0) AS s
             FROM cms
             WHERE post_date BETWEEN %s AND %s
+              AND status = 'Active'
             GROUP BY DATE(post_date)
             """,
             (ws, we)
         )
         rows = cur.fetchall() or []
 
-        by_date = { r["d"]: {"count": int(r["c"] or 0), "amount": float(r["s"] or 0)} for r in rows }
+        by_date = {r["d"]: {"count": int(r["c"] or 0), "amount": float(r["s"] or 0)} for r in rows}
 
         days = []
-        total_amt = 0.0
-        total_cnt = 0
+        total_amt = total_cnt = 0
         d = ws
         while d <= we:
             val = by_date.get(d, {"count": 0, "amount": 0.0})
@@ -191,9 +177,10 @@ def home():
         cm=mistake_cheques,
     )
 
+
 @app.route("/cheques/<date>")
 def cheques_by_date_html(date):
-    """Render a modal table of cheques for that post_date (no JSON)."""
+    """Render a modal table of *ACTIVE* cheques for that post_date."""
     conn = connect_db()
     cur = conn.cursor(dictionary=True)
     cur.execute(
@@ -205,13 +192,15 @@ def cheques_by_date_html(date):
             status
         FROM cms
         WHERE DATE(post_date) = %s
-        ORDER BY vendor
+          AND status = 'Active'
+        ORDER BY vendor, cheque_no
         """,
         (date,),
     )
     rows = cur.fetchall()
     conn.close()
     return render_template("partials/cheque_popup.html", date=date, cheques=rows)
+
 
 
 @app.route("/chequeentry", methods=["GET", "POST"])
