@@ -1,168 +1,58 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Status Update</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0; 
-        }
-        .nav-bar{
-            background: black;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            height: 10vh; 
-        }
-        .logo {
-            font-size: 1cm;
-        }
-        .items {
-            display: flex;
-            gap:1cm;
-            font-size: 0.5cm;
-        }
-        .items a{
-            color: white;
-            text-decoration: none;
-            transition: all 0.5s ease-in-out;
-        }
-        .items a:hover{
-            text-decoration: underline;
-            text-underline-offset: 0.5cm;
-            font-size: 0.6cm;
-        }
-        body{
-                background-color: beige;
-            }
-        table,tr,td,th{
-            border:1px solid black;
-            border-collapse: collapse;
-            padding: 10px;
-        }
-        main {
-            background-color: beige;
-            display: flex;
-            align-items: center;
-            flex-direction: column;
-            height:90vh;
-        }
-       .form-container {
-            text-align: center;
-            margin-top: 10px;
-        }
-        .cheque-details {
-            margin-top: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 5px;
-            border-radius: 10px;
-            border: none;
-            background-color: lightblue;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        button:disabled {
-            cursor: not-allowed;
-            background-color: #ddd;
-            color: #888;
-        }
-        input[type="number"], input[type="date"] {
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #aaa;
-        }
-        form {
-            margin: 10px 0;
-        }
-        .alert {
-            padding: 10px;
-            margin: 15px auto;
-            width: 90%;
-            max-width: 600px;
-            border-radius: 5px;
-            text-align: center;
-        }
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <nav class="nav-bar">
-            <div class="logo"> SHK </div>
-            <div class="items">
-                <p><a href="/">Dashboard</a></p>
-                <p><a href="/chequeentry">Cheque Entry</a></p>
-                <p><a href="/statusupdate">Status Update</a></p>
-                <p><a href="/search">Search</a></p>
-                <p><a href="/vendor">Vendor</a></p>
-            </div>
-        </nav>
-    </header> 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <div>
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }}">
-          {{ message }}
-        </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-    {% endwith %}
-    <main>
-    <h1>SHK CHEQUE MANAGEMENT SYSTEM</h1>
-    <section class="form-container">
-        <h2>Status Update</h2>
-        <form method="POST" action="/statusupdate">
-            <label for="cheque_no">Enter Cheque No:</label>
-            <input type="number" name="cheque_no" required>
-            <button type="submit">Search</button>
-        </form>
-    </section>
-    <section>
-        {% if cheque %}
-            <div class="cheque-details">
-                <h2>Cheque Details</h2>
-                <p>Bank: {{ cheque.bank }}</p>
-                <p>Cheque No: {{ cheque.cheque_no }}</p>
-                <p>Amount: {{ cheque.amount }}</p>
-                <p>Vendor: {{ cheque.vendor }}</p>
-                <p>Status: {{ cheque.status }}</p>
-                <p>Status Date: {{ cheque.status_date }}</p>
+{% extends "base.html" %}
+{% block title %}Status Update · SHK CMS{% endblock %}
 
-                <form method="POST" action="/updatestatus">
-                    <input type="hidden" name="cheque_no" value="{{ cheque.cheque_no }}">
-                    <label for="status_date">Select Date:</label>
-                    <input type="date" name="status_date" required><br><br>
-                    
-                    <button type="submit" name="status" value="Cashed" {% if cheque.status != 'Active' %}disabled{% endif %}>Cashed</button>
-                    <button type="submit" name="status" value="Cancelled" {% if cheque.status != 'Active' %}disabled{% endif %}>Cancelled</button>
-                    <button type="submit" name="status" value="Bounced" {% if cheque.status != 'Active' %}disabled{% endif %}>Bounced</button>
-                </form>
-        {% endif %}
-    </section>
-    </main>
-     <script>
-        setTimeout(() => {
-            document.querySelectorAll('.alert').forEach(alert => {
-                alert.style.display = 'none';
-            });
-        }, 3000); // 3 seconds
-    </script>
-</body>
-</html>
+{% block content %}
+<h1 class="h4 mb-3">Status Update</h1>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <form method="POST" action="/statusupdate" class="row g-2 align-items-end">
+      <div class="col-12 col-sm-6">
+        <label class="form-label">Enter Cheque No</label>
+        <input type="number" class="form-control" name="cheque_no" required>
+      </div>
+      <div class="col-12 col-sm-auto">
+        <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Search</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if cheque %}
+<div class="card shadow-sm">
+  <div class="card-header bg-white"><strong>Cheque Details</strong></div>
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-6 col-md-3"><strong>Bank:</strong> {{ cheque.bank }}</div>
+      <div class="col-6 col-md-3"><strong>Cheque No:</strong> {{ cheque.cheque_no }}</div>
+      <div class="col-6 col-md-3"><strong>Amount:</strong> {{ cheque.amount }}</div>
+      <div class="col-6 col-md-3"><strong>Vendor:</strong> {{ cheque.vendor }}</div>
+      <div class="col-6 col-md-3"><strong>Status:</strong> {{ cheque.status }}</div>
+      <div class="col-6 col-md-3"><strong>Status Date:</strong> {{ cheque.status_date }}</div>
+    </div>
+
+    <hr>
+    <form method="POST" action="/updatestatus" class="row g-2 align-items-end">
+      <input type="hidden" name="cheque_no" value="{{ cheque.cheque_no }}">
+      <div class="col-12 col-sm-4">
+        <label class="form-label">Select Date</label>
+        <input type="date" class="form-control" name="status_date" required>
+      </div>
+      <div class="col-12 col-sm-8">
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-success" name="status" value="Cashed" {% if cheque.status != 'Active' %}disabled{% endif %}>
+            <i class="bi bi-check2-circle"></i> Cashed
+          </button>
+          <button class="btn btn-secondary" name="status" value="Cancelled" {% if cheque.status != 'Active' %}disabled{% endif %}>
+            <i class="bi bi-x-circle"></i> Cancelled
+          </button>
+          <button class="btn btn-danger" name="status" value="Bounced" {% if cheque.status != 'Active' %}disabled{% endif %}>
+            <i class="bi bi-exclamation-octagon"></i> Bounced
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

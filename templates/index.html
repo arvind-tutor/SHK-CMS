@@ -1,181 +1,85 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        .nav-bar {
-            background: black;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            height: 10vh;
-        }
-        .logo {
-            font-size: 1cm;
-        }
-        .items {
-            display: flex;
-            gap:1cm;
-            font-size: 0.5cm;
-        }
-        .items a {
-            color: white;
-            text-decoration: none;
-            transition: all 0.5s ease-in-out;
-        }
-        .items a:hover {
-            text-decoration: underline;
-            text-underline-offset: 0.5cm;
-            font-size: 0.6cm;
-        }
-        body {
-            background-color: beige;
-            font-family: Arial, sans-serif;
-         }
-        h1 {
-            text-align: center;
-            margin: 10px 0;
-        } 
-        main {
-            display: flex;
-            height: 90vh;
-            width: 100vw;
-            height:90vh;
-        }
-        section {
-            width: 50%;
-            padding: 20px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-        }
-        section h2 {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: center;
-            font-size: 14px;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        canvas {
-            margin: 20px;
-            display: block;
-        } 
-    </style>
-</head>
-<body>
-    <header>
-        <nav class="nav-bar">
-            <div class="logo"> SHK </div>
-            <div class="items">
-                <p><a href="/">Dashboard</a></p>
-                <p><a href="/chequeentry">Cheque Entry</a></p>
-                <p><a href="/statusupdate">Status Update</a></p>
-                <p><a href="/search">Search</a></p>
-                <p><a href="/vendor">Vendor</a></p>
-            </div>
-        </nav>
-    </header>
-    <h1>SHK CHEQUE MANAGEMENT SYSTEM</h1>
-    <main>
-        <section>
-            <h2>Status Summary</h2>
-            <table>
-                <tr><th>Details</th><th>Count</th></tr>
-                <tr><td>Issued Cheque</td><td>{{ ci }}</td></tr>
-                <tr><td>Active Cheque</td><td>{{ ca }}</td></tr>
-                <tr><td>Cashed Cheque</td><td>{{ cc }}</td></tr>
-                <tr><td>Cancelled Cheque</td><td>{{ cn }}</td></tr>
-                <tr><td>Bounced Cheque</td><td>{{ cb }}</td></tr>
-                <tr><td>Mistake Cheque</td><td>{{ cm }}</td></tr>
-            </table>
-            <canvas id="statusPie" style="max-width: 400px; max-height: 400px;"></canvas>
-        </section>
+{% extends "base.html" %}
+{% block title %}Dashboard · SHK CMS{% endblock %}
+{% block head_extra %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
 
-        <section>
-            <h2>7-Day Cheque Amount</h2>
-            <table>
-                <tr><th>Date</th><th>Amount</th></tr>
-                {% for day in days %}
-                <tr>
-                    <td>{{ day.date }}</td>
-                    <td>₹ {{ day.amount }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-            <canvas id="daysBar" style="max-width: 700px; max-height: 400px;"></canvas>
-        </section>
-    </main>
+{% block content %}
+<h1 class="h4 mb-3">Dashboard</h1>
 
-    <script>
-        // Pie Chart for Status Summary
-        new Chart(document.getElementById('statusPie'), {
-            type: 'pie',
-            data: {
-                labels: ['Issued', 'Active', 'Cashed', 'Cancelled', 'Bounced', 'Mistake'],
-                datasets: [{
-                    data: [{{ ci }}, {{ ca }}, {{ cc }}, {{ cn }}, {{ cb }}, {{ cm }}],
-                    backgroundColor: ['#ff6384', '#36a2eb', '#4bc0c0', '#ffcd56', '#9966ff', '#ff9f40']
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' }
-                }
-            }
-        });
+<div class="row g-3">
+  <!-- Status summary -->
+  <div class="col-12 col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white">
+        <strong>Status Summary</strong>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <tbody>
+              <tr><th>Issued Cheques</th><td class="text-end fw-semibold">{{ ci }}</td></tr>
+              <tr><th>Active</th><td class="text-end fw-semibold">{{ ca }}</td></tr>
+              <tr><th>Cashed</th><td class="text-end fw-semibold">{{ cc }}</td></tr>
+              <tr><th>Cancelled</th><td class="text-end fw-semibold">{{ cn }}</td></tr>
+              <tr><th>Bounced</th><td class="text-end fw-semibold">{{ cb }}</td></tr>
+              <tr><th>Mistake</th><td class="text-end fw-semibold">{{ cm }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <canvas id="statusPie" class="mt-2"></canvas>
+      </div>
+    </div>
+  </div>
 
-        // Bar Chart for 7-Day Cheque Amount Only
-        const daysLabels = [
-            {% for day in days %}
-            "{{ day.date }}",
-            {% endfor %}
-        ];
-        const daysAmounts = [
-            {% for day in days %}
-            {{ day.amount }},
-            {% endfor %}
-        ];
+  <!-- 7-Day amounts -->
+  <div class="col-12 col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white">
+        <strong>7-Day Cheque Amount</strong>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr><th>Date</th><th class="text-end">Amount</th></tr>
+            </thead>
+            <tbody>
+              {% for day in days %}
+              <tr>
+                <td>{{ day.date }}</td>
+                <td class="text-end">₹ {{ day.amount }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <canvas id="daysBar" class="mt-2"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
 
-        new Chart(document.getElementById('daysBar'), {
-            type: 'bar',
-            data: {
-                labels: daysLabels,
-                datasets: [{
-                    label: 'Cheque Amount',
-                    data: daysAmounts,
-                    backgroundColor: '#ff6384'
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'top' }
-                },
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
-    </script>
-</body>
-</html>
+{% block body_extra %}
+<script>
+  // Pie
+  new Chart(document.getElementById('statusPie'), {
+    type: 'pie',
+    data: {
+      labels: ['Issued','Active','Cashed','Cancelled','Bounced','Mistake'],
+      datasets: [{ data: [{{ ci }}, {{ ca }}, {{ cc }}, {{ cn }}, {{ cb }}, {{ cm }}] }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+  });
+
+  // Bar
+  const labels = [{% for d in days %}"{{ d.date }}",{% endfor %}];
+  const data = [{% for d in days %}{{ d.amount }},{% endfor %}];
+  new Chart(document.getElementById('daysBar'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Cheque Amount', data }] },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+</script>
+{% endblock %}

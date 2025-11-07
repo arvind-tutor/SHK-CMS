@@ -1,317 +1,140 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Check Entry</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0; 
-        }
-        main {
-            background-color: beige;
-            display: flex;
-            align-items: center;
-            flex-direction: column;
-            height:90vh;
-        }
-        .container1{
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-        .btncontainer {
-            display: flex;
-            justify-content: center;
-            margin-top: 10px;  /* Space above button */
-        }
-        .btncontainer button {
-            padding: 10px 20px;
-            margin: 5px;
-            border-radius: 10px;
-            border: none;
-            background-color: lightblue;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        input, select, option {
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #aaa;
-            width: 100px; /* Adjust as needed */
-            height: 30px;
-        }
-        table,tr,td,th{
-            border:1px solid black;
-            border-collapse: collapse;
-            padding: 10px;
-        }
-        .nav-bar{
-            background: black;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            height: 10vh; 
-        }
-        .logo {
-            font-size: 1cm;
-        }
-        .items {
-            display: flex;
-            gap:1cm;
-            font-size: 0.5cm;
-        }
-        .items a{
-            color: white;
-            text-decoration: none;
-            transition: all 0.5s ease-in-out;
-        }
-        .items a:hover{
-            text-decoration: underline;
-            text-underline-offset: 0.5cm;
-            font-size: 0.6cm;
-        }
-        .alert {
-            padding: 10px;
-            margin: 15px auto;
-            width: 90%;
-            max-width: 600px;
-            border-radius: 5px;
-            text-align: center;
-        }
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        h2 {
-            text-align: center;
-        }
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px 20px;
-            max-width: 500px;
-        }
+{% extends "base.html" %}
+{% block title %}Cheque Entry · SHK CMS{% endblock %}
 
-        .form-grid-4 {
-            display: grid;
-            grid-template-columns: 150px 200px 150px 200px;
-            gap: 10px 20px;
-            padding: 20px;
-            border-radius: 10px;
-        }
+{% block content %}
+<h1 class="h4 mb-3">Cheque Entry</h1>
 
-        .form-grid-4 label {
-            justify-self: end;
-            align-self: center;
-        }
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form id="entryForm" method="POST" action="/chequeentry" class="row g-3">
+      <div class="col-12 col-sm-6">
+        <label class="form-label">Bank</label>
+        <select class="form-select" name="bank" id="bank" required>
+          <option value="ICICI">ICICI</option>
+          <option value="HDFC">HDFC</option>
+          <option value="HDFC Athiyan">HDFC Athiyan</option>
+        </select>
+      </div>
 
-        .form-grid-4 input,
-        .form-grid-4 select {
-            width: 100%;
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #aaa;
-        }
+      <div class="col-6 col-sm-3">
+        <label class="form-label">Post Date</label>
+        <input type="date" class="form-control" name="rdate" id="rdate" required>
+      </div>
+      <div class="col-6 col-sm-3">
+        <label class="form-label">Cheque No</label>
+        <input type="number" class="form-control" name="chqno" id="chqno" required>
+      </div>
 
-        .btncontainer {
-            grid-column: 1 / -1; /* Button spans all 4 columns */
-            text-align: center;
-            margin-top: 10px;
-        }
+      <div class="col-12 col-sm-6">
+        <label class="form-label">Vendor</label>
+        <select class="form-select" name="vendor" id="vendor" required>
+          <option value="" disabled selected>Select Vendor</option>
+          {% for v in vendor_list %}
+          <option value="{{ v }}">{{ v }}</option>
+          {% endfor %}
+        </select>
+      </div>
 
-        .btncontainer button {
-            padding: 10px 20px;
-            background-color: lightblue;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100px;
-            font-size: 15px;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5);
-        }
+      <div class="col-6 col-sm-3">
+        <label class="form-label">Amount</label>
+        <input type="number" class="form-control" name="amount" id="amount" required>
+      </div>
+      <div class="col-6 col-sm-3">
+        <label class="form-label">Issue Date</label>
+        <input type="date" class="form-control" name="idate" id="idate" required>
+      </div>
 
-        .modal-content {
-            background-color: beige;
-            margin: 10% auto;
-            padding: 20px;
-            border-radius: 10px;
-            width: 300px;
-            text-align: center;
-        }
-        .modal-content p {
-            margin: 10px 0;
-        }
-        .modal-content button {
-            padding: 8px 16px;
-            margin: 5px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        #saveBtn {
-            background-color: green;
-            color: white;
-        }
-        #modifyBtn {
-            background-color: orange;
-            color: white;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <nav class="nav-bar">
-            <div class="logo"> SHK </div>
-            <div class="items">
-                <p><a href="/">Dashboard</a></p>
-                <p><a href="/chequeentry">Cheque Entry</a></p>
-                <p><a href="/statusupdate">Status Update</a></p>
-                <p><a href="/search">Search</a></p>
-                <p><a href="/vendor">Vendor</a></p>
-            </div>
-        </nav>
-    </header>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <div>
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }}">
-          {{ message }}
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-plus-circle"></i> Add
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Last 5 -->
+<div class="card shadow-sm mt-4">
+  <div class="card-header bg-white"><strong>Last 5 Cheques</strong></div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th><th>Bank</th><th>Cheque No</th><th class="text-end">Amount</th>
+            <th>Issue Date</th><th>Realisation Date</th><th>Vendor</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in records %}
+          <tr>
+            <td>{{ row.id }}</td>
+            <td>{{ row.bank }}</td>
+            <td>{{ row.cheque_no }}</td>
+            <td class="text-end">{{ row.amount }}</td>
+            <td>{{ row.issue_date }}</td>
+            <td>{{ row.post_date }}</td>
+            <td>{{ row.vendor }}</td>
+            <td>
+              {% if row.status == 'Active' %}<span class="badge bg-warning text-dark">Active</span>
+              {% elif row.status == 'Cashed' %}<span class="badge bg-success">Cashed</span>
+              {% elif row.status == 'Cancelled' %}<span class="badge bg-secondary">Cancelled</span>
+              {% elif row.status == 'Bounced' %}<span class="badge bg-danger">Bounced</span>
+              {% elif row.status == 'Mistake' %}<span class="badge bg-dark">Mistake</span>
+              {% else %}-{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Cheque Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body small">
+        <div class="row g-2">
+          <div class="col-6"><strong>Bank:</strong> <span id="cBank"></span></div>
+          <div class="col-6"><strong>Post Date:</strong> <span id="cPost"></span></div>
+          <div class="col-6"><strong>Cheque No:</strong> <span id="cNo"></span></div>
+          <div class="col-6"><strong>Vendor:</strong> <span id="cVendor"></span></div>
+          <div class="col-6"><strong>Amount:</strong> <span id="cAmt"></span></div>
+          <div class="col-6"><strong>Issue Date:</strong> <span id="cIssue"></span></div>
         </div>
-      {% endfor %}
+      </div>
+      <div class="modal-footer">
+        <button id="modifyBtn" type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Modify</button>
+        <button id="saveBtn" type="button" class="btn btn-primary">Save</button>
+      </div>
     </div>
-    {% endif %}
-    {% endwith %}
-    <main>
-    <h1>SHK CHEQUE MANAGEMENT SYSTEM</h1>
-    <section class="container1">
-        <br>
-        <h2>Cheque Entry</h2>
-        <br>
-        <form method="POST" action="/chequeentry" class="form-grid-4">
-            <label for="bank">Bank:</label>
-            <select name="bank" id="bank" required>
-                <option value="ICICI">ICICI</option>
-                <option value="HDFC">HDFC</option>
-                <option value="HDFC Athiyan">HDFC Athiyan</option>
-            </select>
+  </div>
+</div>
+{% endblock %}
 
-            <label for="rdate">Post Date:</label>
-            <input type="date" name="rdate" id="rdate" required>
+{% block body_extra %}
+<script>
+  const form = document.getElementById('entryForm');
+  const modalEl = document.getElementById('confirmModal');
+  const modal = new bootstrap.Modal(modalEl);
 
-            <label for="chqno">Cheque No:</label>
-            <input type="number" name="chqno" id="chqno" required>
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    cBank.textContent   = bank.value;
+    cPost.textContent   = rdate.value;
+    cNo.textContent     = chqno.value;
+    cVendor.textContent = vendor.value;
+    cAmt.textContent    = amount.value;
+    cIssue.textContent  = idate.value;
+    modal.show();
+  });
 
-            <label for="vendor">Vendor:</label>
-            <select name="vendor" id="vendor" required>
-                <option value="" disabled selected>Select Vendor</option>
-                {% for v in vendor_list %}
-                <option value="{{ v }}">{{ v }}</option>
-                {% endfor %}
-            </select>
-
-            <label for="amount">Amount:</label>
-            <input type="number" name="amount" id="amount" required>
-
-            <label for="idate">Issue Date:</label>
-            <input type="date" name="idate" id="idate" required>
-
-            <!-- Centered Button -->
-            <div class="btncontainer">
-                <button type="submit">Add</button>
-            </div>
-        </form>
-    </section>
-    <!-- Popup Modal -->
-    <div id="confirmModal" class="modal">
-    <div class="modal-content">
-        <h2>Confirm Cheque Details</h2>
-        <p><strong>Bank:</strong> <span id="confirmBank"></span></p>
-        <p><strong>Post Date:</strong> <span id="confirmPostDate"></span></p>
-        <p><strong>Cheque No:</strong> <span id="confirmChequeNo"></span></p>
-        <p><strong>Vendor:</strong> <span id="confirmVendor"></span></p>
-        <p><strong>Amount:</strong> <span id="confirmAmount"></span></p>
-        <p><strong>Issue Date:</strong> <span id="confirmIssueDate"></span></p>
-        
-        <button id="saveBtn">Save</button>
-        <button id="modifyBtn">Modify</button>
-    </div>
-    </div>
-    <br><br>
-    <h1>Last 5 Cheques</h1>
-    <section class="container2">
-        <table>
-    <tr>
-        <th>ID</th>
-        <th>Bank</th>
-        <th>Cheque No</th>
-        <th>Amount</th>
-        <th>Issue Date</th>
-        <th>Realisation Date</th>
-        <th>Vendor</th>
-        <th>Status</th>
-    </tr>
-    {% for row in records %}
-    <tr>
-        <td>{{ row.id }}</td>
-        <td>{{ row.bank }}</td>
-        <td>{{ row.cheque_no }}</td>
-        <td>{{ row.amount }}</td>
-        <td>{{ row.issue_date }}</td>
-        <td>{{ row.post_date }}</td>
-        <td>{{ row.vendor }}</td>
-        <td>{{ row.status }}</td>
-    </tr>
-    {% endfor %}
-</table>
-    </section>
-    </main>
-    <script>
-        setTimeout(() => {
-            document.querySelectorAll('.alert').forEach(alert => {
-            alert.style.display = 'none';
-            });
-        }, 3000); // 3 seconds
-
-        document.querySelector('.form-grid-4').addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevent form submission
-            // Get form values
-            document.getElementById('confirmBank').textContent = document.getElementById('bank').value;
-            document.getElementById('confirmPostDate').textContent = document.getElementById('rdate').value;
-            document.getElementById('confirmChequeNo').textContent = document.getElementById('chqno').value;
-            document.getElementById('confirmVendor').textContent = document.getElementById('vendor').value;
-            document.getElementById('confirmAmount').textContent = document.getElementById('amount').value;
-            document.getElementById('confirmIssueDate').textContent = document.getElementById('idate').value;
-            // Show modal
-            document.getElementById('confirmModal').style.display = 'block';
-        });
-
-        document.getElementById('modifyBtn').addEventListener('click', function() {
-            document.getElementById('confirmModal').style.display = 'none';
-        });
-
-        document.getElementById('saveBtn').addEventListener('click', function() {
-            document.querySelector('.form-grid-4').submit();
-        });
-    </script>
-</body>
-</html>
+  document.getElementById('saveBtn').addEventListener('click', () => form.submit());
+</script>
+{% endblock %}

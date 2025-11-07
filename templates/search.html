@@ -1,166 +1,123 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search By Vendor</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0; 
-        }
-         .nav-bar{
-            background: black;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            height: 10vh; 
-        }
-        .logo {
-            font-size: 1cm;
-        }
-        .items {
-            display: flex;
-            gap:1cm;
-            font-size: 0.5cm;
-        }
-        .items a{
-            color: white;
-            text-decoration: none;
-            transition: all 0.5s ease-in-out;
-        }
-        .items a:hover{
-            text-decoration: underline;
-            text-underline-offset: 0.5cm;
-            font-size: 0.6cm;
-        }
-        body{
-                background-color: beige;
-            }
-        table,tr,td,th{
-            border:1px solid black;
-            border-collapse: collapse;
-            padding: 10px;
-        }
-        main {
-            background-color: beige;
-            display: flex;
-            align-items: center;
-            flex-direction: column;
-            height:90vh;
-        }
-        h2 {
-            text-align: center;
-        }
-       input, select, option {
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #aaa;
-            width: 100px; /* Adjust as needed */
-            height: 30px;
-        }
-         button {
-            padding: 10px 20px;
-            margin: 5px;
-            border-radius: 10px;
-            border: none;
-            background-color: lightblue;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-    </style>
-</head>
-<body>
-    <header>
-        <nav class="nav-bar">
-            <div class="logo"> SHK </div>
-            <div class="items">
-                <p><a href="/">Dashboard</a></p>
-                <p><a href="/chequeentry">Cheque Entry</a></p>
-                <p><a href="/statusupdate">Status Update</a></p>
-                <p><a href="/search">Search</a></p>
-                <p><a href="/vendor">Vendor</a></p>
+{% extends "base.html" %}
+{% block title %}Search · SHK CMS{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-3">Search</h1>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <form method="POST" action="/search" class="row g-3">
+      <div class="col-12 col-md-3">
+        <label class="form-label">Bank</label>
+        <select class="form-select" name="bank" required>
+          <option value="ICICI">ICICI</option>
+          <option value="HDFC">HDFC</option>
+          <option value="HDFC Athiyan">HDFC Athiyan</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label">Vendor</label>
+        <select class="form-select" name="vendor">
+          <option value="">All Vendors</option>
+          {% for v in vendor_list %}
+          <option value="{{ v }}">{{ v }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label">Cheque No</label>
+        <input type="number" class="form-control" name="cheque_no">
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label">From</label>
+        <input type="date" class="form-control" name="from_date">
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label">To</label>
+        <input type="date" class="form-control" name="to_date">
+      </div>
+      <div class="col-12">
+        <button class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Summary -->
+<div class="row g-3">
+  <div class="col-12 col-lg-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white"><strong>Summary</strong></div>
+      <div class="card-body">
+        <div class="row text-center g-3">
+          <div class="col-6">
+            <div class="p-3 bg-light rounded">
+              <div class="small text-muted">Cheques</div>
+              <div class="fs-5 fw-semibold">{{ total_cheques }}</div>
             </div>
-        </nav>
-    </header> 
-    <main>
-    <h1>SHK CHEQUE MANAGEMENT SYSTEM</h1>
-    <section class="form1">
-        <br>
-        <h2>Search</h2>
-        <br>
-        <form method="POST" action="/search" class="search-form">
-            <label>Bank:</label>
-            <select name="bank" required>
-                <option value="ICICI">ICICI</option>
-                <option value="HDFC">HDFC</option>
-                <option value="HDFC Athiyan">HDFC Athiyan</option>
-            </select>
-            <label>Vendor:</label>
-            <select name="vendor">
-                <option value="">All Vendors</option>
-                {% for v in vendor_list %}
-                <option value="{{ v }}">{{ v }}</option>
-                {% endfor %}
-            </select>
-            <label>Cheque No:</label>
-            <input type="number" name="cheque_no">
-            <label>From Date:</label>
-            <input type="date" name="from_date">
-            <label>To Date:</label>
-            <input type="date" name="to_date">
-            <button type="submit">Search</button>
-        </form>
-    </section>
-    <br><br>
-    <section>
-        <table>
-            <tr>
-                <th>Cheque Count:</th>
-                <th>Active Cheque Count:</th>
-                <th>Amount:</th>
-                <th>Amount Cashed:</th>
-                <th>Amount to be Cashed:</th>
-            </tr>
-            <tr>
-                <td>{{ total_cheques }}</td>
-                <td>{{ active_cheques }}</td>
-                <td>₹ {{ total_amount }}</td>
-                <td>₹ {{ cashed_amount }}</td>
-                <td>₹ {{ active_amount }}</td>
-            </tr>
-        </table>
-    </section>
-    <br><br>
-    <Section class="one">
-        <table>
-            <tr>
-                <th>Bank</th>
-                <th>Cheque No</th>
-                <th>Amount</th>
-                <th>Issue Date</th>
-                <th>Realisation Date</th>
-                <th>Vendor</th>
-                <th>Status</th>
-                <th>Status Date</th>
-            </tr>
-            {% for row in results %}
-            <tr>
+          </div>
+          <div class="col-6">
+            <div class="p-3 bg-light rounded">
+              <div class="small text-muted">Active</div>
+              <div class="fs-5 fw-semibold">{{ active_cheques }}</div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="p-3 bg-light rounded">
+              <div class="small text-muted">Total Amount</div>
+              <div class="fs-5 fw-semibold">₹ {{ total_amount }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-3 bg-light rounded">
+              <div class="small text-muted">Cashed</div>
+              <div class="fs-6 fw-semibold">₹ {{ cashed_amount }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-3 bg-light rounded">
+              <div class="small text-muted">To be Cashed</div>
+              <div class="fs-6 fw-semibold">₹ {{ active_amount }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="col-12 col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white"><strong>Results</strong></div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Bank</th><th>Cheque No</th><th class="text-end">Amount</th>
+                <th>Issue Date</th><th>Realisation Date</th><th>Vendor</th><th>Status</th><th>Status Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in results %}
+              <tr>
                 <td>{{ row.bank }}</td>
                 <td>{{ row.cheque_no }}</td>
-                <td>{{ row.amount }}</td>
+                <td class="text-end">{{ row.amount }}</td>
                 <td>{{ row.issue_date }}</td>
                 <td>{{ row.post_date }}</td>
                 <td>{{ row.vendor }}</td>
                 <td>{{ row.status }}</td>
                 <td>{{ row.status_date }}</td>
-            </tr>
-            {% endfor %}
-        </table>      
-    </Section>
-    </main>
-</body>
-</html>
+              </tr>
+              {% else %}
+              <tr><td colspan="8" class="text-center text-muted">No results</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

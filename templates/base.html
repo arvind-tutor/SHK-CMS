@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}SHK Cheque Management{% endblock %}</title>
+
+  <!-- Bootstrap 5 -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+    crossorigin="anonymous"
+  >
+
+  <!-- Bootstrap Icons (optional, used for small icons) -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    rel="stylesheet"
+  >
+
+  <style>
+    :root {
+      --brand-bg: #0d6efd; /* Bootstrap primary */
+      --brand-dark: #0b5ed7;
+    }
+    body { background: #f8f9fa; }
+    .navbar-brand { font-weight: 700; letter-spacing: .3px; }
+    .card { border-radius: 1rem; }
+    .table thead th { white-space: nowrap; }
+    .sticky-actions { position: sticky; bottom: 1rem; z-index: 1030; }
+  </style>
+
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark" style="background: var(--brand-bg);">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">SHK CMS</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div id="topNav" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="/">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="/chequeentry">Cheque Entry</a></li>
+          <li class="nav-item"><a class="nav-link" href="/statusupdate">Status Update</a></li>
+          <li class="nav-item"><a class="nav-link" href="/search">Search</a></li>
+          <li class="nav-item"><a class="nav-link" href="/vendor">Vendor</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Flash messages -->
+  <div class="container mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="position-relative">
+          {% for category, message in messages %}
+            {# map your 'success' / 'error' to BS alerts #}
+            {% set bs = 'success' if category in ['success','ok'] else ('danger' if category in ['error','danger'] else 'info') %}
+            <div class="alert alert-{{ bs }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Page body -->
+  <main class="container my-3">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="py-3 text-center text-muted">
+    <small>© {{ (now() if false) }} SHK Industries • Cheque Management</small>
+  </footer>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"
+  ></script>
+  {% block body_extra %}{% endblock %}
+</body>
+</html>
