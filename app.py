@@ -191,6 +191,20 @@ def home():
         cm=mistake_cheques,
     )
 
+@app.route("/cheques/<date>")
+def cheques_by_date_html(date):
+    """Render a small table of cheques for that date (no JSON)."""
+    conn = connect_db()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("""
+        SELECT vendor_name, cheque_no, amount, status
+        FROM cms
+        WHERE post_date = %s
+        ORDER BY vendor_name
+    """, (date,))
+    rows = cur.fetchall()
+    conn.close()
+    return render_template("partials/cheque_popup.html", date=date, cheques=rows)
 
 @app.route("/chequeentry", methods=["GET", "POST"])
 def chequeentry():

@@ -1,15 +1,16 @@
 {% extends "base.html" %}
 {% block title %}Dashboard · SHK CMS{% endblock %}
+
 {% block head_extra %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
 {% block content %}
 <h1 class="h4 mb-3">Dashboard</h1>
 
-<!-- ===== Pre-Week: Uncashed before Week 1 ===== -->
+<!-- ================= PRE-WEEK: Uncashed before Week 1 ================= -->
 <div class="card shadow-sm mb-3">
-  <div class="card-header bg-white fw-bold">Cash Planning</div>
+  <div class="card-header bg-white fw-bold"></div>
   <div class="card-body">
     <div class="accordion" id="preWeekAccordion">
       <div class="accordion-item mb-2 border-0 shadow-sm rounded">
@@ -37,31 +38,47 @@
         >
           <div class="accordion-body">
             {% if pre_week.days %}
-            <table class="table table-sm align-middle mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>Date</th>
-                  <th class="text-end">Amount</th>
-                  <th class="text-end">Count</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for d in pre_week.days %}
-                <tr>
-                  <td>{{ d.date }}</td>
-                  <td class="text-end">₹ {{ d.amount | inr }}</td>
-                  <td class="text-end">{{ d.count }}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-              <tfoot class="table-light">
-                <tr>
-                  <th>Total</th>
-                  <th class="text-end">₹ {{ pre_week.total_amount | inr }}</th>
-                  <th class="text-end">{{ pre_week.total_count }}</th>
-                </tr>
-              </tfoot>
-            </table>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Date</th>
+                    <th class="text-end">Amount</th>
+                    <th class="text-end">Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for d in pre_week.days %}
+                  <tr>
+                    <td>{{ d.date }}</td>
+                    <td class="text-end">
+                      <a href="{{ url_for('cheques_by_date_html', date=d.date_iso) }}"
+                         class="text-decoration-none"
+                         data-bs-toggle="modal" data-bs-target="#chequeModal"
+                         data-bs-remote="true">
+                        ₹ {{ d.amount | inr }}
+                      </a>
+                    </td>
+                    <td class="text-end">
+                      <a href="{{ url_for('cheques_by_date_html', date=d.date_iso) }}"
+                         class="text-decoration-none fw-semibold text-primary"
+                         data-bs-toggle="modal" data-bs-target="#chequeModal"
+                         data-bs-remote="true">
+                        {{ d.count }}
+                      </a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                  <tr>
+                    <th>Total</th>
+                    <th class="text-end">₹ {{ pre_week.total_amount | inr }}</th>
+                    <th class="text-end">{{ pre_week.total_count }}</th>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
             {% else %}
               <div class="text-muted">No uncashed cheques before this week 🎉</div>
             {% endif %}
@@ -72,9 +89,9 @@
   </div>
 </div>
 
-<!-- ===== Weekly accordion (Week 1 → Week 4) ===== -->
+<!-- ================= WEEKLY ACCORDION (Week 1 → Week 4) ================= -->
 <div class="card shadow-sm mb-3">
-  <div class="card-header bg-white fw-bold">Cheques by Week (Current → 4 Weeks)</div>
+  <div class="card-header bg-white fw-bold">Cheques by Week </div>
   <div class="card-body">
     <div class="accordion" id="weeksAccordion">
       {% for w in weeks %}
@@ -103,31 +120,47 @@
           data-bs-parent="#weeksAccordion"
         >
           <div class="accordion-body">
-            <table class="table table-sm align-middle mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>Date</th>
-                  <th class="text-end">Amount</th>
-                  <th class="text-end">Count</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for d in w.days %}
-                <tr>
-                  <td>{{ d.date }}</td>
-                  <td class="text-end">₹ {{ d.amount | inr }}</td>
-                  <td class="text-end">{{ d.count }}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-              <tfoot class="table-light">
-                <tr>
-                  <th>Total</th>
-                  <th class="text-end">₹ {{ w.total_amount | inr }}</th>
-                  <th class="text-end">{{ w.total_count }}</th>
-                </tr>
-              </tfoot>
-            </table>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Date</th>
+                    <th class="text-end">Amount</th>
+                    <th class="text-end">Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for d in w.days %}
+                  <tr>
+                    <td>{{ d.date }}</td>
+                    <td class="text-end">
+                      <a href="{{ url_for('cheques_by_date_html', date=d.date_iso) }}"
+                         class="text-decoration-none"
+                         data-bs-toggle="modal" data-bs-target="#chequeModal"
+                         data-bs-remote="true">
+                        ₹ {{ d.amount | inr }}
+                      </a>
+                    </td>
+                    <td class="text-end">
+                      <a href="{{ url_for('cheques_by_date_html', date=d.date_iso) }}"
+                         class="text-decoration-none fw-semibold text-primary"
+                         data-bs-toggle="modal" data-bs-target="#chequeModal"
+                         data-bs-remote="true">
+                        {{ d.count }}
+                      </a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                  <tr>
+                    <th>Total</th>
+                    <th class="text-end">₹ {{ w.total_amount | inr }}</th>
+                    <th class="text-end">{{ w.total_count }}</th>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -136,7 +169,7 @@
   </div>
 </div>
 
-<!-- ===== Status summary + pie ===== -->
+<!-- ================= STATUS SUMMARY + PIE ================= -->
 <div class="card shadow-sm">
   <div class="card-header bg-white fw-bold">Status Summary</div>
   <div class="card-body">
@@ -158,17 +191,43 @@
 {% endblock %}
 
 {% block body_extra %}
+<!-- Modal container (content loaded from /cheques/<date>) -->
+<div class="modal fade" id="chequeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content"></div>
+  </div>
+</div>
+
 <script>
-new Chart(document.getElementById('statusPie'), {
-  type: 'pie',
-  data: {
-    labels: ['Issued','Active','Cashed','Cancelled','Bounced','Mistake'],
-    datasets: [{
-      data: [{{ ci }}, {{ ca }}, {{ cc }}, {{ cn }}, {{ cb }}, {{ cm }}],
-      backgroundColor: ['#ff6384','#36a2eb','#4bc0c0','#ffcd56','#9966ff','#ff9f40']
-    }]
-  },
-  options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-});
+  // Load server-rendered HTML (no jsonify) into modal
+  document.addEventListener('click', function (e) {
+    const link = e.target.closest('[data-bs-remote]');
+    if (link) {
+      e.preventDefault();
+      const modalEl = document.getElementById('chequeModal');
+      const modalContent = modalEl.querySelector('.modal-content');
+      modalContent.innerHTML = '<div class="p-4 text-center text-muted">Loading...</div>';
+      fetch(link.href)
+        .then(r => r.text())
+        .then(html => { modalContent.innerHTML = html; })
+        .catch(() => {
+          modalContent.innerHTML = '<div class="p-4 text-center text-danger">Error loading details</div>';
+        });
+      new bootstrap.Modal(modalEl).show();
+    }
+  });
+
+  // Status Pie
+  new Chart(document.getElementById('statusPie'), {
+    type: 'pie',
+    data: {
+      labels: ['Issued','Active','Cashed','Cancelled','Bounced','Mistake'],
+      datasets: [{
+        data: [{{ ci }}, {{ ca }}, {{ cc }}, {{ cn }}, {{ cb }}, {{ cm }}],
+        backgroundColor: ['#ff6384','#36a2eb','#4bc0c0','#ffcd56','#9966ff','#ff9f40']
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+  });
 </script>
 {% endblock %}

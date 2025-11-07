@@ -1,0 +1,32 @@
+<div class="modal-header bg-primary text-white">
+  <h5 class="modal-title">Cheques on {{ date }}</h5>
+  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+</div>
+<div class="modal-body">
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Vendor</th>
+          <th>Cheque No</th>
+          <th class="text-end">Amount</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if cheques %}
+        {% for c in cheques %}
+        <tr>
+          <td>{{ c.vendor_name }}</td>
+          <td>{{ c.cheque_no }}</td>
+          <td class="text-end">₹ {{ c.amount | inr }}</td>
+          <td>{{ c.status }}</td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr><td colspan="4" class="text-center text-muted py-3">No cheques found</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
