@@ -1,233 +1,167 @@
 {% extends "base.html" %}
-{% block title %}Dashboard · SHK CMS{% endblock %}
-
-{% block head_extra %}
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<h1 class="h4 mb-3">Dashboard</h1>
+<div class="container-fluid mt-3">
 
-<!-- ================= PRE-WEEK: Uncashed before Week 1 ================= -->
-<div class="card shadow-sm mb-3">
-  <div class="card-header bg-white fw-bold"></div>
-  <div class="card-body">
-    <div class="accordion" id="preWeekAccordion">
-      <div class="accordion-item mb-2 border-0 shadow-sm rounded">
-        <h2 class="accordion-header" id="headingPre">
-          <button
-            class="accordion-button flex-column align-items-start py-3 {% if not pre_week.days %}collapsed{% endif %}"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#collapsePre"
-            aria-expanded="{{ 'true' if pre_week.days else 'false' }}"
-            aria-controls="collapsePre"
-          >
-            <div class="w-100">
-              <div class="fw-bold text-danger fs-6">Uncashed before Week 1</div>
-              <div class="text-muted small">{{ pre_week.range_label }}</div>
-              <div class="fw-semibold text-dark">₹ {{ pre_week.total_amount | inr }}</div>
-            </div>
-          </button>
-        </h2>
-        <div
-          id="collapsePre"
-          class="accordion-collapse collapse {% if pre_week.days %}show{% endif %}"
-          aria-labelledby="headingPre"
-          data-bs-parent="#preWeekAccordion"
-        >
-          <div class="accordion-body">
-            {% if pre_week.days %}
-            <div class="table-responsive">
-              <table class="table table-sm align-middle mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th>Date</th>
-                    <th class="text-end">Amount</th>
-                    <th class="text-end">Count</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for d in pre_week.days %}
-                  <tr>
-                    <td>{{ d.date }}</td>
-                    <td class="text-end">
-                      <a href="{{ url_for('cheques_by_date_html', date=d.date_iso) }}"
-                         class="text-decoration-none"
-                         data-bs-toggle="modal" data-bs-target="#chequeModal"
-                         data-bs-remote="true">
-                        ₹ {{ d.amount | inr }}
-                      </a>
-                    </td>
-                    <td class="text-end">
-                      <a href="{{ url_for('cheques_by_date_html', date=d.date_iso) }}"
-                         class="text-decoration-none fw-semibold text-primary"
-                         data-bs-toggle="modal" data-bs-target="#chequeModal"
-                         data-bs-remote="true">
-                        {{ d.count }}
-                      </a>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-                <tfoot class="table-light">
-                  <tr>
-                    <th>Total</th>
-                    <th class="text-end">₹ {{ pre_week.total_amount | inr }}</th>
-                    <th class="text-end">{{ pre_week.total_count }}</th>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-            {% else %}
-              <div class="text-muted">No uncashed cheques before this week 🎉</div>
-            {% endif %}
+  <h5 class="fw-semibold mb-3">Dashboard</h5>
+
+  <!-- 🧾 Uncashed Before Week 1 -->
+  <div class="accordion mb-3" id="accordionPreWeek">
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingPreWeek">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapsePreWeek" aria-expanded="true"
+                aria-controls="collapsePreWeek">
+          <div>
+            <div class="fw-bold text-danger">Uncashed before Week 1</div>
+            <div class="small text-muted">Up to {{ pre_week.end_date }}</div>
+            <div class="fw-semibold">₹ {{ "{:,.0f}".format(pre_week.total) }}</div>
           </div>
+        </button>
+      </h2>
+      <div id="collapsePreWeek" class="accordion-collapse collapse show"
+           aria-labelledby="headingPreWeek" data-bs-parent="#accordionPreWeek">
+        <div class="accordion-body p-2">
+          <table class="table table-sm align-middle mb-0">
+            <thead class="table-light">
+              <tr><th>Date</th><th>Amount</th><th>Count</th></tr>
+            </thead>
+            <tbody>
+              {% for d in pre_week.days %}
+              <tr>
+                <td>{{ d.date }}</td>
+                <td>₹ {{ "{:,.0f}".format(d.amount) }}</td>
+                <td>
+                  {% if d.count > 0 %}
+                    <a href="{{ url_for('cheques_by_date_html', date=d.date_iso) }}"
+                       class="text-decoration-none fw-semibold text-primary"
+                       data-bs-toggle="modal" data-bs-target="#chequeModal"
+                       data-bs-remote="true">{{ d.count }}</a>
+                  {% else %}
+                    {{ d.count }}
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+              <tr class="fw-bold border-top">
+                <td>Total</td>
+                <td>₹ {{ "{:,.0f}".format(pre_week.total) }}</td>
+                <td>{{ pre_week.total_count }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- ================= WEEKLY ACCORDION (Week 1 → Week 4) ================= -->
-<div class="card shadow-sm mb-3">
-  <div class="card-header bg-white fw-bold">Cheques by Week </div>
-  <div class="card-body">
-    <div class="accordion" id="weeksAccordion">
-      {% for w in weeks %}
-      <div class="accordion-item mb-2 border-0 shadow-sm rounded">
-        <h2 class="accordion-header" id="heading{{ loop.index }}">
-          <button
-            class="accordion-button {% if not loop.first %}collapsed{% endif %} flex-column align-items-start py-3"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#collapse{{ loop.index }}"
-            aria-expanded="{{ 'true' if loop.first else 'false' }}"
-            aria-controls="collapse{{ loop.index }}"
-          >
-            <div class="w-100">
-              <div class="fw-bold text-primary fs-6">{{ w.title }}</div>
-              <div class="text-muted small">{{ w.range_label }}</div>
-              <div class="fw-semibold text-dark">₹ {{ w.total_amount | inr }}</div>
-            </div>
-          </button>
-        </h2>
-
-        <div
-          id="collapse{{ loop.index }}"
-          class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
-          aria-labelledby="heading{{ loop.index }}"
-          data-bs-parent="#weeksAccordion"
-        >
-          <div class="accordion-body">
-            <div class="table-responsive">
-              <table class="table table-sm align-middle mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th>Date</th>
-                    <th class="text-end">Amount</th>
-                    <th class="text-end">Count</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for d in w.days %}
-                  <tr>
-                    <td>{{ d.date }}</td>
-                    <td class="text-end">
-                      <a href="{{ url_for('cheques_by_date_html', date=d.date_iso) }}"
-                         class="text-decoration-none"
-                         data-bs-toggle="modal" data-bs-target="#chequeModal"
-                         data-bs-remote="true">
-                        ₹ {{ d.amount | inr }}
-                      </a>
-                    </td>
-                    <td class="text-end">
-                      <a href="{{ url_for('cheques_by_date_html', date=d.date_iso) }}"
-                         class="text-decoration-none fw-semibold text-primary"
-                         data-bs-toggle="modal" data-bs-target="#chequeModal"
-                         data-bs-remote="true">
-                        {{ d.count }}
-                      </a>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-                <tfoot class="table-light">
-                  <tr>
-                    <th>Total</th>
-                    <th class="text-end">₹ {{ w.total_amount | inr }}</th>
-                    <th class="text-end">{{ w.total_count }}</th>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
+  <!-- 📆 Cheques by Week -->
+  <div class="accordion" id="accordionWeeks">
+    <div class="card mb-2">
+      <div class="card-header bg-light fw-semibold">Cheques by Week (Current → 4th)</div>
+    </div>
+    {% for w in weeks %}
+    <div class="accordion-item mb-2">
+      <h2 class="accordion-header" id="heading{{ loop.index }}">
+        <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button"
+                data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}"
+                aria-expanded="{{ 'true' if loop.first else 'false' }}"
+                aria-controls="collapse{{ loop.index }}">
+          <div>
+            <div class="fw-bold text-primary">Week {{ loop.index }}</div>
+            <div class="small text-muted">{{ w.start }} – {{ w.end }}</div>
+            <div class="fw-semibold">₹ {{ "{:,.0f}".format(w.total) }}</div>
           </div>
+        </button>
+      </h2>
+      <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
+           aria-labelledby="heading{{ loop.index }}" data-bs-parent="#accordionWeeks">
+        <div class="accordion-body p-2">
+          <table class="table table-sm align-middle mb-0">
+            <thead class="table-light">
+              <tr><th>Date</th><th>Amount</th><th>Count</th></tr>
+            </thead>
+            <tbody>
+              {% for d in w.days %}
+              <tr>
+                <td>{{ d.date }}</td>
+                <td>₹ {{ "{:,.0f}".format(d.amount) }}</td>
+                <td>
+                  {% if d.count > 0 %}
+                    <a href="{{ url_for('cheques_by_date_html', date=d.date_iso) }}"
+                       class="text-decoration-none fw-semibold text-primary"
+                       data-bs-toggle="modal" data-bs-target="#chequeModal"
+                       data-bs-remote="true">{{ d.count }}</a>
+                  {% else %}
+                    {{ d.count }}
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+              <tr class="fw-bold border-top">
+                <td>Total</td>
+                <td>₹ {{ "{:,.0f}".format(w.total) }}</td>
+                <td>{{ w.total_count }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-      {% endfor %}
     </div>
+    {% endfor %}
   </div>
-</div>
 
-<!-- ================= STATUS SUMMARY + PIE ================= -->
-<div class="card shadow-sm">
-  <div class="card-header bg-white fw-bold">Status Summary</div>
-  <div class="card-body">
-    <div class="table-responsive">
+  <!-- 📊 Status Summary -->
+  <div class="card mt-4">
+    <div class="card-header bg-light fw-semibold">Status Summary</div>
+    <div class="card-body p-2">
       <table class="table table-sm align-middle mb-0">
-        <tbody>
-          <tr><th>Issued Cheques</th><td class="text-end fw-semibold">{{ ci }}</td></tr>
-          <tr><th>Active</th><td class="text-end fw-semibold">{{ ca }}</td></tr>
-          <tr><th>Cashed</th><td class="text-end fw-semibold">{{ cc }}</td></tr>
-          <tr><th>Cancelled</th><td class="text-end fw-semibold">{{ cn }}</td></tr>
-          <tr><th>Bounced</th><td class="text-end fw-semibold">{{ cb }}</td></tr>
-          <tr><th>Mistake</th><td class="text-end fw-semibold">{{ cm }}</td></tr>
-        </tbody>
+        <tr><td>Issued Cheques</td><td class="text-end">{{ ci }}</td></tr>
+        <tr><td>Active</td><td class="text-end">{{ ca }}</td></tr>
+        <tr><td>Cashed</td><td class="text-end">{{ cc }}</td></tr>
+        <tr><td>Cancelled</td><td class="text-end">{{ cn }}</td></tr>
+        <tr><td>Bounced</td><td class="text-end">{{ cb }}</td></tr>
+        <tr><td>Mistake</td><td class="text-end">{{ cm }}</td></tr>
       </table>
     </div>
-    <canvas id="statusPie" class="mt-3"></canvas>
+  </div>
+</div>
+
+<!-- 🪟 Modal for daily cheques -->
+<div class="modal fade" id="chequeModal" tabindex="-1" aria-labelledby="chequeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content"></div>
   </div>
 </div>
 {% endblock %}
 
 {% block body_extra %}
-<!-- Modal container (content loaded from /cheques/<date>) -->
-<div class="modal fade" id="chequeModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content"></div>
-  </div>
-</div>
-
 <script>
-  // Load server-rendered HTML (no jsonify) into modal
-  document.addEventListener('click', function (e) {
-    const link = e.target.closest('[data-bs-remote]');
-    if (link) {
-      e.preventDefault();
-      const modalEl = document.getElementById('chequeModal');
-      const modalContent = modalEl.querySelector('.modal-content');
-      modalContent.innerHTML = '<div class="p-4 text-center text-muted">Loading...</div>';
-      fetch(link.href)
-        .then(r => r.text())
-        .then(html => { modalContent.innerHTML = html; })
-        .catch(() => {
-          modalContent.innerHTML = '<div class="p-4 text-center text-danger">Error loading details</div>';
-        });
-      new bootstrap.Modal(modalEl).show();
+  // Bootstrap modal dynamic loader
+  const modalEl = document.getElementById('chequeModal');
+
+  modalEl.addEventListener('show.bs.modal', function (ev) {
+    const trigger = ev.relatedTarget;
+    const url = trigger && trigger.getAttribute('href');
+    const content = modalEl.querySelector('.modal-content');
+    content.innerHTML = '<div class="p-4 text-center text-muted">Loading...</div>';
+
+    if (!url) {
+      content.innerHTML = '<div class="p-4 text-danger">Invalid link</div>';
+      return;
     }
+
+    fetch(url)
+      .then(r => r.text())
+      .then(html => { content.innerHTML = html; })
+      .catch(() => {
+        content.innerHTML = '<div class="p-4 text-danger">Error loading details</div>';
+      });
   });
 
-  // Status Pie
-  new Chart(document.getElementById('statusPie'), {
-    type: 'pie',
-    data: {
-      labels: ['Issued','Active','Cashed','Cancelled','Bounced','Mistake'],
-      datasets: [{
-        data: [{{ ci }}, {{ ca }}, {{ cc }}, {{ cn }}, {{ cb }}, {{ cm }}],
-        backgroundColor: ['#ff6384','#36a2eb','#4bc0c0','#ffcd56','#9966ff','#ff9f40']
-      }]
-    },
-    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+  modalEl.addEventListener('hidden.bs.modal', function () {
+    modalEl.querySelector('.modal-content').innerHTML = '';
   });
 </script>
 {% endblock %}
