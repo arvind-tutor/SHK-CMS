@@ -16,61 +16,63 @@
         <strong>Cheques by Week (Current → 4th)</strong>
       </div>
       <div class="card-body">
-        <div class="accordion accordion-flush" id="weeksAccordion">
-          {% for w in weeks %}
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="h{{ w.index }}">
-              <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button"
-                      data-bs-toggle="collapse" data-bs-target="#c{{ w.index }}" aria-expanded="{{ 'true' if loop.first else 'false' }}"
-                      aria-controls="c{{ w.index }}">
-                <div class="d-flex w-100 justify-content-between align-items-center">
-                  <span class="fw-semibold">
-                    {{ w.title }} <span class="text-muted">({{ w.range_label }})</span>
-                  </span>
-                  <span class="badge text-bg-primary rounded-pill ms-2">
-                    Total ₹ {{ '%.2f'|format(w.total_amount or 0) }}
-                  </span>
-                  {% if loop.first %}
-                    <span class="badge text-bg-warning text-dark rounded-pill ms-2">
-                      Live {{ w.active_count }}
-                    </span>
-                  {% endif %}
+        <div class="accordion" id="weeksAccordion">
+        {% for w in weeks %}
+        <div class="accordion-item mb-2 border-0 shadow-sm rounded">
+            <h2 class="accordion-header" id="heading{{ loop.index }}">
+            <button class="accordion-button collapsed flex-column align-items-start py-3"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapse{{ loop.index }}"
+                    aria-expanded="{{ 'true' if loop.first else 'false' }}"
+                    aria-controls="collapse{{ loop.index }}">
+                <div class="w-100">
+                <div class="fw-bold text-primary fs-6">
+                    Week {{ loop.index }}
                 </div>
-              </button>
+                <div class="text-muted small">
+                    {{ w.range_label }}
+                </div>
+                <div class="fw-semibold text-dark">
+                    ₹ {{ "{:,.0f}".format(w.total_amount or 0) }}
+                </div>
+                </div>
+            </button>
             </h2>
-            <div id="c{{ w.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" aria-labelledby="h{{ w.index }}" data-bs-parent="#weeksAccordion">
-              <div class="accordion-body">
-                <div class="table-responsive">
-                  <table class="table table-sm align-middle">
-                    <thead>
-                      <tr>
-                        <th style="min-width: 120px;">Date</th>
-                        <th class="text-end" style="min-width: 100px;">Amount</th>
-                        <th class="text-end" style="min-width: 90px;">Count</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {% for d in w.days %}
-                      <tr>
-                        <td>{{ d.date }}</td>
-                        <td class="text-end">₹ {{ '%.2f'|format(d.amount or 0) }}</td>
-                        <td class="text-end">{{ d.count }}</td>
-                      </tr>
-                      {% endfor %}
-                    </tbody>
-                    <tfoot>
-                      <tr class="table-light">
-                        <th>Total</th>
-                        <th class="text-end">₹ {{ '%.2f'|format(w.total_amount or 0) }}</th>
-                        <th class="text-end">{{ w.total_count }}</th>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              </div>
+
+            <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
+                aria-labelledby="heading{{ loop.index }}"
+                data-bs-parent="#weeksAccordion">
+            <div class="accordion-body">
+                <table class="table table-sm">
+                <thead>
+                    <tr>
+                    <th>Date</th>
+                    <th class="text-end">Amount</th>
+                    <th class="text-end">Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in w.days %}
+                    <tr>
+                    <td>{{ d.date }}</td>
+                    <td class="text-end">₹ {{ "{:,.0f}".format(d.amount or 0) }}</td>
+                    <td class="text-end">{{ d.count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                    <th>Total</th>
+                    <th class="text-end">₹ {{ "{:,.0f}".format(w.total_amount or 0) }}</th>
+                    <th class="text-end">{{ w.total_count }}</th>
+                    </tr>
+                </tfoot>
+                </table>
             </div>
-          </div>
-          {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
         </div>
       </div>
     </div>
