@@ -199,35 +199,41 @@
 </div>
 
 <script>
-  // Load server-rendered HTML (no jsonify) into modal
-  document.addEventListener('click', function (e) {
-    const link = e.target.closest('[data-bs-remote]');
-    if (link) {
-      e.preventDefault();
-      const modalEl = document.getElementById('chequeModal');
-      const modalContent = modalEl.querySelector('.modal-content');
-      modalContent.innerHTML = '<div class="p-4 text-center text-muted">Loading...</div>';
-      fetch(link.href)
-        .then(r => r.text())
-        .then(html => { modalContent.innerHTML = html; })
-        .catch(() => {
-          modalContent.innerHTML = '<div class="p-4 text-center text-danger">Error loading details</div>';
-        });
-      new bootstrap.Modal(modalEl).show();
-    }
+  // --- one reusable instance ---
+  const modalEl  = document.getElementById('chequeModal');
+  const modalCt  = modalEl.querySelector('.modal-content');
+  const bsModal  = bootstrap.Modal.getOrCreateInstance(modalEl, {
+    backdrop: true,
+    keyboard: true
   });
 
-  // Status Pie
-  new Chart(document.getElementById('statusPie'), {
-    type: 'pie',
-    data: {
-      labels: ['Issued','Active','Cashed','Cancelled','Bounced','Mistake'],
-      datasets: [{
-        data: [{{ ci }}, {{ ca }}, {{ cc }}, {{ cn }}, {{ cb }}, {{ cm }}],
-        backgroundColor: ['#ff6384','#36a2eb','#4bc0c0','#ffcd56','#9966ff','#ff9f40']
-      }]
-    },
-    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+  // Open + load HTML into the modal
+  document.addEventListener('click', function (e) {
+    const link = e.target.closest('[data-bs-remote]');
+    if (!link) return;
+
+    e.preventDefault();
+    modalCt.innerHTML = '<div class="p-4 text-center text-muted">Loading...</div>';
+
+    fetch(link.href)
+      .then(r => r.text())
+      .then(html => { modalCt.innerHTML = html; })
+      .catch(() => {
+        modalCt.innerHTML = '<div class="p-4 text-center text-danger">Error loading details</div>';
+      });
+
+    bsModal.show();
+  });
+
+  // When the modal is fully hidden: clean up & refresh page
+  modalEl.addEventListener('hidden.bs.modal', () => {
+    // safety: remove any stray backdrops (in case of prior multiple instances)
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+    document.body.classList.remove('modal-open');
+    modalCt.innerHTML = '';
+    // refresh dashboard so the grey layer never lingers and data stays fresh
+    window.location.reload();
   });
 </script>
+
 {% endblock %}
