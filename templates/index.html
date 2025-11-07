@@ -7,18 +7,81 @@
 {% block content %}
 <h1 class="h4 mb-3">Dashboard</h1>
 
-<!-- ================= WEEKLY ACCORDION ================= -->
+<!-- ===== Pre-Week: Uncashed before Week 1 ===== -->
 <div class="card shadow-sm mb-3">
-  <div class="card-header bg-white fw-bold">
-    Cheques by Weeks
+  <div class="card-header bg-white fw-bold">Cash Planning</div>
+  <div class="card-body">
+    <div class="accordion" id="preWeekAccordion">
+      <div class="accordion-item mb-2 border-0 shadow-sm rounded">
+        <h2 class="accordion-header" id="headingPre">
+          <button
+            class="accordion-button flex-column align-items-start py-3 {% if not pre_week.days %}collapsed{% endif %}"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapsePre"
+            aria-expanded="{{ 'true' if pre_week.days else 'false' }}"
+            aria-controls="collapsePre"
+          >
+            <div class="w-100">
+              <div class="fw-bold text-danger fs-6">Uncashed before Week 1</div>
+              <div class="text-muted small">{{ pre_week.range_label }}</div>
+              <div class="fw-semibold text-dark">₹ {{ pre_week.total_amount | inr }}</div>
+            </div>
+          </button>
+        </h2>
+        <div
+          id="collapsePre"
+          class="accordion-collapse collapse {% if pre_week.days %}show{% endif %}"
+          aria-labelledby="headingPre"
+          data-bs-parent="#preWeekAccordion"
+        >
+          <div class="accordion-body">
+            {% if pre_week.days %}
+            <table class="table table-sm align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Date</th>
+                  <th class="text-end">Amount</th>
+                  <th class="text-end">Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for d in pre_week.days %}
+                <tr>
+                  <td>{{ d.date }}</td>
+                  <td class="text-end">₹ {{ d.amount | inr }}</td>
+                  <td class="text-end">{{ d.count }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot class="table-light">
+                <tr>
+                  <th>Total</th>
+                  <th class="text-end">₹ {{ pre_week.total_amount | inr }}</th>
+                  <th class="text-end">{{ pre_week.total_count }}</th>
+                </tr>
+              </tfoot>
+            </table>
+            {% else %}
+              <div class="text-muted">No uncashed cheques before this week 🎉</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+</div>
+
+<!-- ===== Weekly accordion (Week 1 → Week 4) ===== -->
+<div class="card shadow-sm mb-3">
+  <div class="card-header bg-white fw-bold">Cheques by Week (Current → 4 Weeks)</div>
   <div class="card-body">
     <div class="accordion" id="weeksAccordion">
       {% for w in weeks %}
       <div class="accordion-item mb-2 border-0 shadow-sm rounded">
         <h2 class="accordion-header" id="heading{{ loop.index }}">
           <button
-            class="accordion-button collapsed flex-column align-items-start py-3"
+            class="accordion-button {% if not loop.first %}collapsed{% endif %} flex-column align-items-start py-3"
             type="button"
             data-bs-toggle="collapse"
             data-bs-target="#collapse{{ loop.index }}"
@@ -26,15 +89,9 @@
             aria-controls="collapse{{ loop.index }}"
           >
             <div class="w-100">
-              <div class="fw-bold text-primary fs-6">
-                Week {{ loop.index }}
-              </div>
-              <div class="text-muted small">
-                {{ w.range_label }}
-              </div>
-              <div class="fw-semibold text-dark">
-                ₹ {{ w.total_amount | inr }}
-              </div>
+              <div class="fw-bold text-primary fs-6">{{ w.title }}</div>
+              <div class="text-muted small">{{ w.range_label }}</div>
+              <div class="fw-semibold text-dark">₹ {{ w.total_amount | inr }}</div>
             </div>
           </button>
         </h2>
@@ -79,27 +136,23 @@
   </div>
 </div>
 
-<!-- ================= STATUS SUMMARY + PIE ================= -->
-<div class="row g-3">
-  <div class="col-12">
-    <div class="card shadow-sm">
-      <div class="card-header bg-white fw-bold">Status Summary</div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-sm align-middle mb-0">
-            <tbody>
-              <tr><th>Issued Cheques</th><td class="text-end fw-semibold">{{ ci }}</td></tr>
-              <tr><th>Active</th><td class="text-end fw-semibold">{{ ca }}</td></tr>
-              <tr><th>Cashed</th><td class="text-end fw-semibold">{{ cc }}</td></tr>
-              <tr><th>Cancelled</th><td class="text-end fw-semibold">{{ cn }}</td></tr>
-              <tr><th>Bounced</th><td class="text-end fw-semibold">{{ cb }}</td></tr>
-              <tr><th>Mistake</th><td class="text-end fw-semibold">{{ cm }}</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <canvas id="statusPie" class="mt-3"></canvas>
-      </div>
+<!-- ===== Status summary + pie ===== -->
+<div class="card shadow-sm">
+  <div class="card-header bg-white fw-bold">Status Summary</div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <tbody>
+          <tr><th>Issued Cheques</th><td class="text-end fw-semibold">{{ ci }}</td></tr>
+          <tr><th>Active</th><td class="text-end fw-semibold">{{ ca }}</td></tr>
+          <tr><th>Cashed</th><td class="text-end fw-semibold">{{ cc }}</td></tr>
+          <tr><th>Cancelled</th><td class="text-end fw-semibold">{{ cn }}</td></tr>
+          <tr><th>Bounced</th><td class="text-end fw-semibold">{{ cb }}</td></tr>
+          <tr><th>Mistake</th><td class="text-end fw-semibold">{{ cm }}</td></tr>
+        </tbody>
+      </table>
     </div>
+    <canvas id="statusPie" class="mt-3"></canvas>
   </div>
 </div>
 {% endblock %}

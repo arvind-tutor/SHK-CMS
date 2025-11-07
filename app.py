@@ -58,8 +58,10 @@ def init_db():
 @app.route("/")
 def home():
     """
-    Dashboard: Collapsible weekly view (Current + next 3 weeks) + status pie.
-    Uses DATE(post_date) grouping; no type hints to avoid NameError.
+    Dashboard: 
+      • NEW: 'Uncashed before Week 1' (all Active cheques up to previous Sunday)
+      • 4 weekly panels (Mon–Sun): current + next 3 weeks
+      • Status pie below
     """
     today = datetime.now().date()
 
@@ -80,18 +82,61 @@ def home():
     bounced_cheques   = count_status("Bounced")
     mistake_cheques   = count_status("Mistake")
 
-    # ---- Build 4 weeks (Mon–Sun) starting with current week ----
-    start_of_week = today - timedelta(days=today.weekday())  # Monday
+    # ---- Weeks: Mon–Sun ----
+    start_of_week = today - timedelta(days=today.weekday())     # Monday
+    prev_sunday   = start_of_week - timedelta(days=1)           # Sunday of previous week
+
     week_ranges = [(start_of_week + timedelta(days=7*k),
                     start_of_week + timedelta(days=7*k + 6))
                    for k in range(4)]
 
-    def fmt(d):
-        return d.strftime("%d-%m-%Y")
+    def fmt(d): return d.strftime("%d-%m-%Y")
 
+    # ---- PRE-WEEK: all Active (uncashed) up to prev Sunday ----
+    cur.execute(
+        """
+        SELECT DATE(post_date) AS d,
+               COUNT(*)        AS c,
+               COALESCE(SUM(amount), 0) AS s
+        FROM cms
+        WHERE status = 'Active' AND post_date <= %s
+        GROUP BY DATE(post_date)
+        ORDER BY d
+        """,
+        (prev_sunday,)
+    )
+    pre_rows = cur.fetchall() or []
+
+    pre_by_date = {}
+    for r in pre_rows:
+        d = r["d"]  # date object
+        pre_by_date[d] = {"count": int(r["c"] or 0), "amount": float(r["s"] or 0)}
+
+    # Build chronological list
+    pre_days = []
+    pre_total_amt = 0.0
+    pre_total_cnt = 0
+    for d, v in sorted(pre_by_date.items(), key=lambda kv: kv[0]):
+        pre_days.append({
+            "date_iso": d.isoformat(),
+            "date": fmt(d),
+            "count": v["count"],
+            "amount": v["amount"],
+        })
+        pre_total_amt += v["amount"]
+        pre_total_cnt += v["count"]
+
+    pre_week = {
+        "title": "Uncashed before Week 1",
+        "range_label": f"Up to {fmt(prev_sunday)}",
+        "total_amount": pre_total_amt,
+        "total_count": pre_total_cnt,
+        "days": pre_days,
+    }
+
+    # ---- 4 weeks ----
     weeks = []
     for idx, (ws, we) in enumerate(week_ranges):
-        # Sum amounts per day inside the range
         cur.execute(
             """
             SELECT DATE(post_date) AS d,
@@ -105,13 +150,8 @@ def home():
         )
         rows = cur.fetchall() or []
 
-        # Map keyed by real date objects
-        by_date = {}
-        for r in rows:
-            d = r["d"]  # mysql-connector returns datetime.date for DATE()
-            by_date[d] = {"count": int(r["c"] or 0), "amount": float(r["s"] or 0)}
+        by_date = { r["d"]: {"count": int(r["c"] or 0), "amount": float(r["s"] or 0)} for r in rows }
 
-        # Fill all 7 days
         days = []
         total_amt = 0.0
         total_cnt = 0
@@ -128,22 +168,12 @@ def home():
             total_cnt += val["count"]
             d += timedelta(days=1)
 
-        # Live (Active) only for current week
-        active_in_week = 0
-        if idx == 0:
-            cur.execute(
-                "SELECT COUNT(*) AS c FROM cms WHERE status='Active' AND post_date BETWEEN %s AND %s",
-                (ws, we),
-            )
-            active_in_week = int((cur.fetchone() or {}).get("c") or 0)
-
         weeks.append({
             "index": idx,
-            "title": "Current Week" if idx == 0 else ("Next Week" if idx == 1 else ("3rd Week" if idx == 2 else "4th Week")),
+            "title": f"Week {idx+1}",
             "range_label": f"{fmt(ws)} – {fmt(we)}",
             "total_amount": total_amt,
             "total_count": total_cnt,
-            "active_count": active_in_week,
             "days": days,
         })
 
@@ -151,6 +181,7 @@ def home():
 
     return render_template(
         "index.html",
+        pre_week=pre_week,
         weeks=weeks,
         ci=total_cheques,
         ca=active_cheques,
