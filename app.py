@@ -58,11 +58,8 @@ def init_db():
 @app.route("/")
 def home():
     """
-    Dashboard:
-      • Collapsible 4-week view (Current + Next + 3rd + 4th)
-      • Current week panel open with 'Live' (Active) count
-      • Status pie summary below (mobile-first order handled in template)
-    This version keeps everything as Python date objects to avoid key-type issues.
+    Dashboard: Collapsible weekly view (Current + next 3 weeks) + status pie.
+    Uses DATE(post_date) grouping; no type hints to avoid NameError.
     """
     today = datetime.now().date()
 
@@ -89,13 +86,12 @@ def home():
                     start_of_week + timedelta(days=7*k + 6))
                    for k in range(4)]
 
-    def fmt(d: date) -> str:
+    def fmt(d):
         return d.strftime("%d-%m-%Y")
 
     weeks = []
-
     for idx, (ws, we) in enumerate(week_ranges):
-        # Query once per week, group by DATE(post_date)
+        # Sum amounts per day inside the range
         cur.execute(
             """
             SELECT DATE(post_date) AS d,
@@ -109,15 +105,11 @@ def home():
         )
         rows = cur.fetchall() or []
 
-        # Build dict keyed by Python date objects (NO strings)
+        # Map keyed by real date objects
         by_date = {}
         for r in rows:
-            # mysql-connector returns datetime.date for DATE() — perfect
-            d = r["d"]
-            by_date[d] = {
-                "count": int(r["c"] or 0),
-                "amount": float(r["s"] or 0),
-            }
+            d = r["d"]  # mysql-connector returns datetime.date for DATE()
+            by_date[d] = {"count": int(r["c"] or 0), "amount": float(r["s"] or 0)}
 
         # Fill all 7 days
         days = []
@@ -136,16 +128,12 @@ def home():
             total_cnt += val["count"]
             d += timedelta(days=1)
 
-        # Active (live) in current week only
+        # Live (Active) only for current week
         active_in_week = 0
         if idx == 0:
             cur.execute(
-                """
-                SELECT COUNT(*) AS c
-                FROM cms
-                WHERE status='Active' AND post_date BETWEEN %s AND %s
-                """,
-                (ws, we)
+                "SELECT COUNT(*) AS c FROM cms WHERE status='Active' AND post_date BETWEEN %s AND %s",
+                (ws, we),
             )
             active_in_week = int((cur.fetchone() or {}).get("c") or 0)
 
@@ -164,7 +152,6 @@ def home():
     return render_template(
         "index.html",
         weeks=weeks,
-        # pie inputs
         ci=total_cheques,
         ca=active_cheques,
         cc=cashed_cheques,
