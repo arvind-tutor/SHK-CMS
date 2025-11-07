@@ -349,6 +349,39 @@ def vendor():
 #     # For production, run via Gunicorn; debug=True is for local dev
 #     app.run(debug=True, host="0.0.0.0", port=10000)
 
+# ---- Jinja filter: Indian currency grouping ----
+def format_inr(value):
+    """
+    Format number in Indian grouping: 12,34,56,789.00
+    Hides .00 if zero paise.
+    """
+    try:
+        x = float(value or 0)
+    except (TypeError, ValueError):
+        return value
+
+    neg = x < 0
+    x = abs(x)
+    s = f"{x:.2f}"  # keep paise
+    int_part, frac = s.split(".")
+
+    # Build Indian groups: last 3, then 2s
+    if len(int_part) <= 3:
+        head = int_part
+    else:
+        head = int_part[-3:]
+        int_part = int_part[:-3]
+        while int_part:
+            head = int_part[-2:] + "," + head
+            int_part = int_part[:-2]
+
+    out = ("-" if neg else "") + head
+    if int(frac) != 0:
+        out += "." + frac  # show paise only if non-zero
+    return out
+
+app.jinja_env.filters["inr"] = format_inr
+
 
 if __name__ == '__main__':
     app.run(debug=True)
